@@ -6,7 +6,8 @@
 		"lint": "eslint",
 		"lint:fix": "eslint --fix",
 		"db:test": "tsx src/scripts/script.ts",
-		"db:seed": "tsx src/scripts/seed.ts"
+		"db:seed": "tsx src/scripts/seed.ts",
+		"postinstall": "prisma generate"
 	},
 	"name": "qr-gen",
 	"type": "module",
