@@ -1,9 +1,0 @@
-[00:00:01.745] Server  LOG      ✓ Ready in 1464ms
-[02:59:40.347] Browser WARN    Image with src "/_next/static/media/qr-image.51db4676.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
-Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
-[03:01:41.496] Server  LOG        Reload env: .env
-[03:01:44.077] Server  LOG        Reload env: .env
-[03:01:48.511] Server  LOG        Reload env: .env
-[03:01:50.288] Server  LOG        Reload env: .env
-[03:02:51.898] Server  LOG        Reload env: .env
-[29:37:38.396] Server  ERROR   2025-12-25T18:38:39.084Z ERROR [Better Auth]: Invalid password

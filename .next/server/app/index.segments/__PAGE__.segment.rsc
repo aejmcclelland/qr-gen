@@ -1,6 +1,0 @@
-1:"$Sreact.fragment"
-2:I[63844,["/_next/static/chunks/a8383c0924f19659.js","/_next/static/chunks/827b3e2fdb5a21dd.js","/_next/static/chunks/a5130c990da6732d.js","/_next/static/chunks/26e5bcc4bdc9fd8e.js"],""]
-3:I[26819,["/_next/static/chunks/8aa0efca034f1bca.js","/_next/static/chunks/15cb800ad5b7ba48.js"],"OutletBoundary"]
-4:"$Sreact.suspense"
-0:{"buildId":"ovM3skGEuBKmNDDinMHFC","rsc":["$","$1","c",{"children":[["$","main",null,{"className":"min-h-screen flex items-center justify-center bg-base-200 p-6","children":["$","div",null,{"className":"card bg-base-100 shadow-xl p-10 flex flex-col items-center gap-6 max-w-md w-full","children":[["$","h1",null,{"className":"text-3xl font-bold text-center","children":"QR‑Gen"}],["$","p",null,{"className":"text-base-content/70 text-center","children":"Generate QR codes instantly or manage your saved ones."}],["$","div",null,{"className":"flex flex-col gap-3 w-full","children":[["$","$L2",null,{"href":"/qr/new","className":"btn btn-primary w-full","children":"Generate a QR Code"}],["$","$L2",null,{"href":"/qr","className":"btn btn-secondary w-full","children":"View Saved QR Codes"}]]}]]}]}],null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
-5:null
