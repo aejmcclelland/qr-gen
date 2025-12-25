@@ -1,0 +1,36 @@
+// src/app/qr/page.tsx
+
+import prisma from '@/lib/prisma';
+import { QrListSection } from '@/components/qr/QrListSection';
+import { mapQrsToClient, type QrClient } from '@/lib/qr-mapper';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
+
+export default async function QrListPage() {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (!session?.user) {
+		redirect('/login?callbackURL=/qr');
+	}
+
+	const dbQrs = await prisma.qrcodes.findMany({
+		where: { userId: session.user.id },
+		orderBy: { createdAt: 'desc' },
+		take: 50,
+	});
+
+	const qrs: QrClient[] = mapQrsToClient(dbQrs);
+
+	return (
+		<div className='min-h-screen bg-base-200'>
+			<div className='max-w-5xl mx-auto py-10 px-4 pb-32'>
+				<QrListSection initialQrs={qrs} />
+			</div>
+		</div>
+	);
+}
