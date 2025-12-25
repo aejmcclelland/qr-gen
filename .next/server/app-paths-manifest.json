@@ -2,6 +2,7 @@
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/[...all]/route": "app/api/auth/[...all]/route.js",
+  "/api/health/route": "app/api/health/route.js",
   "/api/qrs/[id]/route": "app/api/qrs/[id]/route.js",
   "/api/qrs/route": "app/api/qrs/route.js",
   "/login/page": "app/login/page.js",
