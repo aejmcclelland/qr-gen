@@ -17,3 +17,6 @@ node_modules
 
 # AI Chat
 ai-chat/
+
+# Next.js build output
+.next
