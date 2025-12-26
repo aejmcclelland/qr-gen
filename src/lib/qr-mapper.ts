@@ -1,5 +1,5 @@
 // src/lib/qr-mapper.ts
-import type { qrcodes } from '@prisma/client';
+import type { qrcodes } from '../../generated/prisma/client';
 
 export type QrClient = {
 	id: string;

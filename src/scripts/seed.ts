@@ -1,5 +1,5 @@
 // src/scripts/seed.ts
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 
 async function main() {
 	const result = await prisma.qrcodes.createMany({
