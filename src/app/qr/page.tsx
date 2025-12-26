@@ -1,6 +1,6 @@
 // src/app/qr/page.tsx
 
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { QrListSection } from '@/components/qr/QrListSection';
 import { mapQrsToClient, type QrClient } from '@/lib/qr-mapper';
 import { auth } from '@/lib/auth';

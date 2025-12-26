@@ -1,53 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/health - DB check (keeps Supabase awake)
 export async function GET(req: NextRequest) {
-  try {
-    const secretFromEnv = process.env.HEALTH_API_SECRET;
+	try {
+		const secretFromEnv = process.env.HEALTH_API_SECRET;
 
-    if (!secretFromEnv) {
-      console.error('[health] Missing HEALTH_API_SECRET env var');
-      return NextResponse.json(
-        { ok: false, error: 'Server misconfigured' },
-        { status: 500 }
-      );
-    }
+		if (!secretFromEnv) {
+			console.error('[health] Missing HEALTH_API_SECRET env var');
+			return NextResponse.json(
+				{ ok: false, error: 'Server misconfigured' },
+				{ status: 500 }
+			);
+		}
 
-    // Prefer header auth (keeps secrets out of URLs/logs)
-    const secretFromHeader = req.headers.get('x-cron-secret');
+		// Prefer header auth (keeps secrets out of URLs/logs)
+		const secretFromHeader = req.headers.get('x-cron-secret');
 
-    // Backwards compatible: allow ?secret=... as well
-    const secretFromQuery = req.nextUrl.searchParams.get('secret');
+		// Backwards compatible: allow ?secret=... as well
+		const secretFromQuery = req.nextUrl.searchParams.get('secret');
 
-    const providedSecret = secretFromHeader ?? secretFromQuery;
+		const providedSecret = secretFromHeader ?? secretFromQuery;
 
-    if (!providedSecret || providedSecret !== secretFromEnv) {
-      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
-    }
+		if (!providedSecret || providedSecret !== secretFromEnv) {
+			return NextResponse.json(
+				{ ok: false, error: 'Unauthorized' },
+				{ status: 401 }
+			);
+		}
 
-    // Minimal, fast query: fetch a single row id only
-    await prisma.qrcodes.findFirst({
-      select: { id: true },
-    });
+		// Minimal, fast query: fetch a single row id only
+		await prisma.qrcodes.findFirst({
+			select: { id: true },
+		});
 
-    return NextResponse.json(
-      {
-        ok: true,
-        status: 'healthy',
-        ts: new Date().toISOString(),
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error('[health] DB check failed', error);
-    return NextResponse.json(
-      {
-        ok: false,
-        status: 'unhealthy',
-        ts: new Date().toISOString(),
-      },
-      { status: 500 }
-    );
-  }
+		return NextResponse.json(
+			{
+				ok: true,
+				status: 'healthy',
+				ts: new Date().toISOString(),
+			},
+			{ status: 200 }
+		);
+	} catch (error) {
+		console.error('[health] DB check failed', error);
+		return NextResponse.json(
+			{
+				ok: false,
+				status: 'unhealthy',
+				ts: new Date().toISOString(),
+			},
+			{ status: 500 }
+		);
+	}
 }

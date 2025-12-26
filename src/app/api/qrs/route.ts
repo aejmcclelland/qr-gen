@@ -1,6 +1,6 @@
 // src/app/api/qrs/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 
 // GET /api/qrs - list QR codes for the current user
