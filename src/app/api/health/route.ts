@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
+export const runtime = 'nodejs';
 // GET /api/health - DB check (keeps Supabase awake)
 export async function GET(req: NextRequest) {
 	try {
