@@ -19,7 +19,10 @@ function createPrismaClient() {
 		vercel: Boolean(process.env.VERCEL),
 		nodeEnv: process.env.NODE_ENV,
 	});
-
+	console.log(
+		'[prisma] ssl mode enabled on vercel',
+		Boolean(process.env.VERCEL)
+	);
 	const pool = new pg.Pool({
 		connectionString,
 		ssl: { rejectUnauthorized: false },
