@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
-						text: `🚨 *qr-gen health check failed*\n• env: ${
+						text: `*qr-gen health check failed*\n• env: ${
 							process.env.VERCEL ? 'vercel' : 'local'
 						}\n• time: ${new Date().toISOString()}\n• error: ${
 							(error as Error)?.message ?? String(error)
