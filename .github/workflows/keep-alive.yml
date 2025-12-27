@@ -12,6 +12,6 @@ jobs:
         steps:
             - name: Call health endpoint
               run: |
-                  curl -f \
+                curl -fsS \
                     -H "x-cron-secret: ${{ secrets.HEALTH_API_SECRET }}" \
-                    https://qr-gen-wine.vercel.app/api/health
+                    "https://qr-gen-wine.vercel.app/api/health?notify=1"
