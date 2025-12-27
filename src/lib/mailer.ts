@@ -1,6 +1,5 @@
 //utils/mailer.ts
-
-import nodemailer from 'nodemailer'
+import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
 	host: process.env.MAILEROO_HOST,
@@ -12,18 +11,19 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
-export async function sendMail({
-	to,
-	subject,
-	text,
-	html,
-}: {
+type MailerParams = {
 	to: string;
 	subject: string;
-	text: string;
-	html?: string;
-}) {
-	return transporter.sendMail({
+	text?: string;
+	html: string;
+};
+
+export async function mailer({ to, subject, html, text }: MailerParams) {
+	if (!process.env.MAILEROO_FROM) {
+		throw new Error('MAILEROO_FROM not set');
+	}
+
+	await transporter.sendMail({
 		from: process.env.MAILEROO_FROM,
 		to,
 		subject,
