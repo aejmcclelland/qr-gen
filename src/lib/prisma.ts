@@ -20,7 +20,7 @@ function createPrismaClient() {
 		vercel: Boolean(process.env.VERCEL),
 	});
 
-	// We control TLS here (rather than via `sslmode` in the URL) to avoid
+	// Control TLS here rather than via `sslmode` in the URL to avoid
 	// certificate-chain validation issues in Vercel serverless.
 	const pool = new Pool({
 		connectionString,
