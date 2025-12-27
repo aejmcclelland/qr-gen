@@ -44,12 +44,30 @@ export async function GET(req: NextRequest) {
 		);
 	} catch (error) {
 		console.error('[health] DB check failed', error);
+
+		const slack = process.env.SLACK_WEBHOOK_URL;
+
+		// Fire-and-forget Slack alert (only on failure)
+		if (slack) {
+			try {
+				await fetch(slack, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						text: `🚨 *qr-gen health check failed*\n• env: ${
+							process.env.VERCEL ? 'vercel' : 'local'
+						}\n• time: ${new Date().toISOString()}\n• error: ${
+							(error as Error)?.message ?? String(error)
+						}`,
+					}),
+				});
+			} catch (e) {
+				console.error('[health] Slack notification failed', e);
+			}
+		}
+
 		return NextResponse.json(
-			{
-				ok: false,
-				status: 'unhealthy',
-				ts: new Date().toISOString(),
-			},
+			{ ok: false, status: 'unhealthy', ts: new Date().toISOString() },
 			{ status: 500 }
 		);
 	}
