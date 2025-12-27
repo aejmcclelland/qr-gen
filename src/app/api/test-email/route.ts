@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { sendMail } from '@/lib/mailer';
+import { mailer } from '@/lib/mailer';
 
 export const runtime = 'nodejs';
 
 export async function GET() {
 	try {
-		await sendMail({
+		await mailer({
 			to: 'aejmcclelland@gmail.com',
 			subject: 'QrVault test email',
 			text: 'If you received this, Maileroo is working 🎉',
