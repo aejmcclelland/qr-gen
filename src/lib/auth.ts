@@ -23,7 +23,7 @@ export const auth = betterAuth({
 			});
 		},
 	},
-	trustedOrigins: ['http://localhost:3000', 'https://qrvault.one'],
+	trustedOrigins: ['http://localhost:3000', 'https://qrvault.one', 'https://wwww.qrvault.one'],
 	socialProviders: {
 		google: {
 			clientId: process.env.GOOGLE_CLIENT_ID as string,
