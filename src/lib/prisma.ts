@@ -1,5 +1,5 @@
 // src/lib/prisma.ts
-import pg from 'pg';
+import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../generated/prisma/client';
 
@@ -20,7 +20,9 @@ function createPrismaClient() {
 		vercel: Boolean(process.env.VERCEL),
 	});
 
-	const pool = new pg.Pool({
+	// We control TLS here (rather than via `sslmode` in the URL) to avoid
+	// certificate-chain validation issues in Vercel serverless.
+	const pool = new Pool({
 		connectionString,
 		ssl: { rejectUnauthorized: false },
 	});
