@@ -59,6 +59,7 @@ export function Navbar() {
               flex items-center gap-1
               rounded-full px-2 py-1
               hover:bg-base-200
+			  
               transition-colors
             '>
 						<span className='inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10'>
