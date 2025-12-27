@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Toast } from '@/components/ui/Toast';
 import { QrCard } from '@/components/qr/QrCard';
 
@@ -23,6 +23,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editLabel, setEditLabel] = useState('');
 	const [editUrl, setEditUrl] = useState('');
+	const [editCategory, setEditCategory] = useState('');
 	const [savingEdit, setSavingEdit] = useState(false);
 	const [toast, setToast] = useState<{
 		show: boolean;
@@ -65,11 +66,13 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 	const startEdit = (qr: Qr) => {
 		setEditingId(qr.id);
 		setEditLabel(qr.label ?? '');
+		setEditCategory(qr.category);
 		setEditUrl(qr.targetUrl);
 	};
 	const cancelEdit = () => {
 		setEditingId(null);
 		setEditLabel('');
+		setEditCategory('');
 		setEditUrl('');
 	};
 
@@ -92,6 +95,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 				body: JSON.stringify({
 					label: editLabel || null,
 					targetUrl: editUrl,
+					category: editCategory,
 				}),
 			});
 
@@ -155,11 +159,13 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 						isEditing={editingId === qr.id}
 						editLabel={editLabel}
 						editUrl={editUrl}
+						editCategory={editCategory}
 						savingEdit={savingEdit}
 						onStartEdit={() => startEdit(qr)}
 						onCancelEdit={cancelEdit}
 						onChangeLabel={setEditLabel}
 						onChangeUrl={setEditUrl}
+						onChangeCategory={setEditCategory}
 						onSubmitEdit={(e) => handleEditSubmit(e, qr.id)}
 						onDelete={() => handleDelete(qr.id)}
 						onVisit={() => {

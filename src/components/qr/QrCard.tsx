@@ -36,10 +36,12 @@ type QrCardProps = {
 	editLabel: string;
 	editUrl: string;
 	savingEdit: boolean;
+	editCategory: string;
 	onStartEdit: () => void;
 	onCancelEdit: () => void;
 	onChangeLabel: (value: string) => void;
 	onChangeUrl: (value: string) => void;
+	onChangeCategory: (value: string) => void;
 	onSubmitEdit: (e: FormEvent<HTMLFormElement>) => void;
 	onDelete: () => void;
 	onVisit: () => void;
@@ -50,12 +52,14 @@ export function QrCard({
 	qr,
 	isEditing,
 	editLabel,
+	editCategory,
 	editUrl,
 	savingEdit,
 	onStartEdit,
 	onCancelEdit,
 	onChangeLabel,
 	onChangeUrl,
+	onChangeCategory,
 	onSubmitEdit,
 	onDelete,
 	onVisit,
@@ -86,6 +90,25 @@ export function QrCard({
 						/>
 					</div>
 
+					<div className='form-control w-full'>
+						<label className='label'>
+							<span className='label-text'>Category</span>
+						</label>
+						<select
+							className='select select-bordered select-sm w-full'
+							value={editCategory}
+							onChange={(e) => onChangeCategory(e.target.value)}
+							required
+						>
+							{Object.keys(CATEGORY_BADGE_CLASSES)
+								.sort()
+								.map((key) => (
+									<option key={key} value={key}>
+										{key.replaceAll('_', ' ')}
+									</option>
+								))}
+						</select>
+					</div>
 					<div className='form-control w-full'>
 						<label className='label'>
 							<span className='label-text'>Target URL</span>
@@ -130,9 +153,12 @@ export function QrCard({
 					</div>
 
 					<div className='text-center w-full'>
-						{qr.label && (
-							<p className='font-medium text-sm wrap-break-word'>{qr.label}</p>
-						)}
+						<p
+							className='font-medium text-sm wrap-break-word min-h-5'
+							aria-hidden={!qr.label}
+						>
+							{qr.label ?? '\u00A0'}
+						</p>
 						<p
 							className='text-xs text-base-content/60 truncate w-full mt-1 mb-1'
 							title={qr.targetUrl}>
