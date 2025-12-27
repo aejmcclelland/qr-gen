@@ -46,23 +46,23 @@ export default function LoginForm() {
 	}
 
 	async function handleGoogleSignup() {
-			setError(null);
-	
-			const rawResult = await signIn.social({
-				provider: 'google',
-				callbackURL: '/',
-			});
-	
-			const result = rawResult as BetterAuthResponse;
-	
-			if (result.error) {
-				const msg =
-					typeof result.error === 'string'
-						? result.error
-						: result.error?.message ?? 'Google sign up failed. Please try again.';
-				setError(msg);
-			}
+		setError(null);
+
+		const rawResult = await signIn.social({
+			provider: 'google',
+			callbackURL,
+		});
+
+		const result = rawResult as BetterAuthResponse;
+
+		if (result.error) {
+			const msg =
+				typeof result.error === 'string'
+					? result.error
+					: result.error?.message ?? 'Google sign up failed. Please try again.';
+			setError(msg);
 		}
+	}
 
 	return (
 		<form onSubmit={onSubmit}>
@@ -86,6 +86,14 @@ export default function LoginForm() {
 					placeholder='Password'
 					required
 				/>
+				<div className='flex justify-end mt-1'>
+					<Link
+						href={`/forgot-password?callbackURL=${encodeURIComponent(callbackURL)}`}
+						className='link link-hover text-sm'
+					>
+						Forgot password?
+					</Link>
+				</div>
 
 				{error && <p className='text-error text-sm mt-2'>{error}</p>}
 

@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
 	host: process.env.MAILEROO_HOST,
 	port: Number(process.env.MAILEROO_PORT),
-	secure: false,
+	secure: Number(process.env.MAILEROO_PORT) === 465,
 	auth: {
 		user: process.env.MAILEROO_USER,
 		pass: process.env.MAILEROO_PASS,
@@ -27,7 +27,7 @@ export async function mailer({ to, subject, html, text }: MailerParams) {
 		from: process.env.MAILEROO_FROM,
 		to,
 		subject,
-		text,
+		text: text ?? 'Please view this email in HTML.',
 		html,
 	});
 }
