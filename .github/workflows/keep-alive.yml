@@ -1,17 +1,17 @@
 name: Supabase Keep Alive
 
 on:
-  schedule:
-    # Every 5 days at 09:00 UTC
-    - cron: '0 9 */5 * *'
-  workflow_dispatch: {}
+    schedule:
+        # Every day at 09:00 UTC
+        - cron: "0 9 * * *"
+    workflow_dispatch: {}
 
 jobs:
-  ping-health:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Call health endpoint
-        run: |
-          curl -f \
-            -H "x-cron-secret: ${{ secrets.HEALTH_API_SECRET }}" \
-            https://qr-gen-wine.vercel.app/api/health
+    ping-health:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Call health endpoint
+              run: |
+                  curl -f \
+                    -H "x-cron-secret: ${{ secrets.HEALTH_API_SECRET }}" \
+                    https://qr-gen-wine.vercel.app/api/health
