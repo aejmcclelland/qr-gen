@@ -147,7 +147,9 @@ export function QrCard({
 							</span>
 
 							<span className='text-[10px] text-base-content/40'>
-								{new Date(qr.createdAt).toLocaleDateString('en-GB')}
+								{qr.createdAt
+									? new Date(qr.createdAt).toLocaleDateString('en-GB')
+									: '—'}
 							</span>
 						</div>
 					</div>
