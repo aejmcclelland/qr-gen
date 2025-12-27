@@ -9,7 +9,7 @@
 		"db:seed": "tsx src/scripts/seed.ts",
 		"postinstall": "prisma generate"
 	},
-	"name": "qr-gen",
+	"name": "qrvault",
 	"type": "module",
 	"dependencies": {
 		"@prisma/adapter-pg": "^7.0.1",

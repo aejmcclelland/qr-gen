@@ -127,7 +127,7 @@ export default function ProfilePage() {
 							<h3 className='text-lg font-semibold'>Profile info</h3>
 							<p className='text-sm text-base-content/70'>
 								In future you&apos;ll be able to add a short bio, location and
-								how you use QR-Gen. For now, this section is a placeholder.
+								how you use QrVault. For now, this section is a placeholder.
 							</p>
 						</section>
 
@@ -145,3 +145,5 @@ export default function ProfilePage() {
 		</div>
 	);
 }
+
+
