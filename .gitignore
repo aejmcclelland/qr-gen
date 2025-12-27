@@ -20,3 +20,10 @@ ai-chat/
 
 # Next.js build output
 .next
+
+tsconfig.tsbuildinfo
+
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
