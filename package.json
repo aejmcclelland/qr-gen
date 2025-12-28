@@ -19,6 +19,7 @@
 		"@radix-ui/react-select": "^2.2.6",
 		"@radix-ui/react-slot": "^1.2.4",
 		"@tailwindcss/postcss": "^4.1.17",
+		"@vercel/analytics": "^1.6.1",
 		"better-auth": "^1.4.3",
 		"build": "^0.1.4",
 		"class-variance-authority": "^0.7.1",
