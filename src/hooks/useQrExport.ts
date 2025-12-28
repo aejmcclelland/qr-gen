@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, type RefObject } from 'react';
 import {
 	resolveQrCanvasFromElement,
 	downloadCanvasAsPng,
@@ -9,8 +9,29 @@ import {
 	openPrintPreview,
 	canvasToBlob,
 	isWebShareSupported,
+	canShareFiles,
 	shareFiles,
 } from '@/lib/qrExport';
+
+function isAppleShareTarget() {
+	if (typeof navigator === 'undefined') return false;
+	const ua = navigator.userAgent || '';
+	// iOS Safari (and iPadOS) are the main culprits for the “caption card” layout when sharing files.
+	// We keep this intentionally simple and conservative.
+	return /iPhone|iPad|iPod/i.test(ua);
+}
+
+function buildShareText(params: { label: string | null; url: string }) {
+	const cleanLabel = (params.label ?? '').trim();
+	// Keep it short and “message-like”.
+	if (cleanLabel) return `QR: ${cleanLabel}\n${params.url}`;
+	return params.url;
+}
+
+export type ShareResult =
+	| { shared: true }
+	| { shared: false; fallback: 'copy-url' }
+	| { shared: false; fallback: null };
 
 export function useQrExport({
 	rootRef,
@@ -18,7 +39,7 @@ export function useQrExport({
 	id,
 	targetUrl,
 }: {
-	rootRef: React.RefObject<HTMLElement | null>;
+	rootRef: RefObject<HTMLElement | null>;
 	label: string | null;
 	id: string;
 	targetUrl: string;
@@ -60,29 +81,35 @@ export function useQrExport({
 		});
 	};
 
-	const share = async () => {
-		// Prefer native share sheet on supported devices (mobile)
-		if (isWebShareSupported()) {
-			const canvas = await exportCanvas();
-			const blob = await canvasToBlob(canvas, 'image/png');
-			const file = new File([blob], `${filename}.png`, { type: 'image/png' });
+	const share = async (): Promise<ShareResult> => {
+		if (!isWebShareSupported()) {
+			return { shared: false, fallback: 'copy-url' };
+		}
 
+		const canvas = await exportCanvas();
+		const blob = await canvasToBlob(canvas, 'image/png');
+
+		const file = new File([blob], 'qr-code.png', {
+			type: 'image/png',
+		});
+
+		if (!canShareFiles([file])) {
+			return { shared: false, fallback: 'copy-url' };
+		}
+
+		try {
 			await shareFiles({
 				files: [file],
-				title: label ?? 'QR Code',
-				text: label ? `QR: ${label}\n${targetUrl}` : targetUrl,
+				text: `QR code for ${targetUrl}`,
 			});
 
-			return;
+			return { shared: true };
+		} catch (err: any) {
+			if (err?.name === 'AbortError') {
+				return { shared: false, fallback: null };
+			}
+			return { shared: false, fallback: 'copy-url' };
 		}
-		try {
-			await navigator.clipboard.writeText(targetUrl);
-		} catch {
-			// clipboard may be blocked (non-HTTPS / denied)
-		}
-
-		await downloadPng();
 	};
-
 	return { filename, downloadPng, downloadJpg, print, share };
 }

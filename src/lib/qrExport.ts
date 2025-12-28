@@ -75,7 +75,9 @@ export async function resolveQrCanvasFromElement(
 	}
 
 	// Fallback: existing canvas
-	const existingCanvas = rootEl.querySelector('canvas') as HTMLCanvasElement | null;
+	const existingCanvas = rootEl.querySelector(
+		'canvas'
+	) as HTMLCanvasElement | null;
 	if (existingCanvas) {
 		// Copy it into a fresh canvas at the desired output size
 		const canvas = document.createElement('canvas');
@@ -99,7 +101,10 @@ export function canvasToDataUrlPng(canvas: HTMLCanvasElement): string {
 	return canvas.toDataURL('image/png');
 }
 
-export function canvasToDataUrlJpg(canvas: HTMLCanvasElement, quality = 0.92): string {
+export function canvasToDataUrlJpg(
+	canvas: HTMLCanvasElement,
+	quality = 0.92
+): string {
 	return canvas.toDataURL('image/jpeg', quality);
 }
 
@@ -121,14 +126,21 @@ export function canvasToBlob(
 }
 
 export function isWebShareSupported() {
-	return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+	return (
+		typeof window !== 'undefined' &&
+		typeof navigator !== 'undefined' &&
+		typeof navigator.share === 'function'
+	);
 }
 
-function canShareFiles(files: File[]) {
+export function canShareFiles(files: File[]) {
+	if (!isWebShareSupported()) return false;
+
 	const nav = navigator as unknown as {
 		canShare?: (data: { files: File[] }) => boolean;
 	};
-	// If canShare isn't present, we optimistically assume support.
+
+	// If canShare isn't present, we optimistically assume support on share-capable browsers.
 	return typeof nav?.canShare === 'function' ? nav.canShare({ files }) : true;
 }
 
@@ -140,16 +152,16 @@ export async function shareFiles(params: {
 }) {
 	if (!isWebShareSupported()) throw new Error('Web Share not supported');
 
-	const data: ShareData = {
-		title: params.title,
-		text: params.text,
-		url: params.url,
-		files: params.files,
-	};
-
 	if (params.files?.length && !canShareFiles(params.files)) {
 		throw new Error('This browser cannot share files');
 	}
+
+	const data: ShareData = {
+		files: params.files,
+		...(params.title ? { title: params.title } : {}),
+		...(params.text ? { text: params.text } : {}),
+		...(params.url ? { url: params.url } : {}),
+	};
 
 	await navigator.share(data);
 }
@@ -164,7 +176,10 @@ export function downloadDataUrl(dataUrl: string, filename: string) {
 	a.remove();
 }
 
-export function downloadCanvasAsPng(canvas: HTMLCanvasElement, filenameBase: string) {
+export function downloadCanvasAsPng(
+	canvas: HTMLCanvasElement,
+	filenameBase: string
+) {
 	downloadDataUrl(canvasToDataUrlPng(canvas), `${filenameBase}.png`);
 }
 

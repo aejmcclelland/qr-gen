@@ -109,11 +109,15 @@ export function QrCard({
 
 	const onShare = useCallback(async () => {
 		try {
-			await share();
+			const result = await share();
+			if (result && result.shared === false && result.fallback === 'copy-url') {
+				// Fallback: copy URL (and let the parent show toast via onCopy)
+				onCopy();
+			}
 		} catch (err) {
 			console.error(err);
 		}
-	}, [share]);
+	}, [share, onCopy]);
 
 	const longPressTimerRef = useRef<number | null>(null);
 	const longPressTriggeredRef = useRef(false);
