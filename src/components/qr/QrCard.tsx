@@ -1,6 +1,6 @@
 'use client';
 
-import { type ChangeEvent, type FormEvent } from 'react';
+import { type ChangeEvent, type FormEvent, useCallback, useRef } from 'react';
 import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
 
@@ -65,9 +65,185 @@ export function QrCard({
 	onVisit,
 	onCopy,
 }: QrCardProps) {
+	const qrRenderRef = useRef<HTMLDivElement | null>(null);
+
+	const getSafeFileBase = useCallback(() => {
+		const base = (qr.label ?? `qr-${qr.id}`).trim() || `qr-${qr.id}`;
+		return base
+			.toLowerCase()
+			.replace(/\s+/g, '-')
+			.replace(/[^a-z0-9-_]/g, '')
+			.slice(0, 40);
+	}, [qr.id, qr.label]);
+
+	const resolveQrImageDataUrl = useCallback(async (): Promise<string> => {
+		const root = qrRenderRef.current;
+		if (!root) throw new Error('QR not available');
+
+		// Prefer SVG if available
+		const svg = root.querySelector('svg');
+		if (svg) {
+			const serializer = new XMLSerializer();
+			const svgText = serializer.serializeToString(svg);
+			const svgBlob = new Blob([svgText], {
+				type: 'image/svg+xml;charset=utf-8',
+			});
+			const url = URL.createObjectURL(svgBlob);
+
+			try {
+				const img = new Image();
+				img.decoding = 'async';
+				// Important for Safari + blob URLs
+				img.src = url;
+
+				await new Promise<void>((resolve, reject) => {
+					img.onload = () => resolve();
+					img.onerror = () => reject(new Error('Failed to load SVG'));
+				});
+
+				const size = 1024;
+				const canvas = document.createElement('canvas');
+				canvas.width = size;
+				canvas.height = size;
+				const ctx = canvas.getContext('2d');
+				if (!ctx) throw new Error('Canvas not supported');
+
+				// white background
+				ctx.fillStyle = '#FFFFFF';
+				ctx.fillRect(0, 0, size, size);
+				ctx.drawImage(img, 0, 0, size, size);
+
+				return canvas.toDataURL('image/png');
+			} finally {
+				URL.revokeObjectURL(url);
+			}
+		}
+
+		// Fallback to canvas if the QR component renders as canvas
+		const canvas = root.querySelector('canvas') as HTMLCanvasElement | null;
+		if (canvas) {
+			return canvas.toDataURL('image/png');
+		}
+
+		throw new Error('Unable to export QR (no svg/canvas found)');
+	}, []);
+
+	const onDownloadPng = useCallback(async () => {
+		try {
+			const dataUrl = await resolveQrImageDataUrl();
+			const a = document.createElement('a');
+			a.href = dataUrl;
+			a.download = `${getSafeFileBase()}.png`;
+			a.rel = 'noopener';
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+		} catch (err) {
+			console.error(err);
+		}
+	}, [getSafeFileBase, resolveQrImageDataUrl]);
+
+	const onPrint = useCallback(async () => {
+		// Open synchronously (before any await) so browsers treat it as user-initiated.
+		const w = window.open('', '_blank');
+		if (!w) return;
+
+		let blobUrl: string | null = null;
+
+		const navigateWithHtml = (html: string) => {
+			const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+			blobUrl = URL.createObjectURL(blob);
+			// Use location.replace so the blank tab doesn't stay in history.
+			w.location.replace(blobUrl);
+		};
+
+		// Quick placeholder so the user doesn’t see a blank tab.
+		navigateWithHtml(`<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Preparing print…</title>
+	<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}</style>
+</head>
+<body>
+	<p>Preparing your QR for printing…</p>
+</body>
+</html>`);
+
+		try {
+			const dataUrl = await resolveQrImageDataUrl();
+			const title = qr.label ?? 'QR Code';
+			const safeTitle = title.replace(/</g, '&lt;');
+			const safeUrl = qr.targetUrl.replace(/</g, '&lt;');
+
+			navigateWithHtml(`<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>${safeTitle}</title>
+	<style>
+		@page { margin: 12mm; }
+		body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+		.wrap { display: grid; place-items: center; gap: 12px; }
+		img { width: 240px; height: 240px; image-rendering: pixelated; }
+		.h1 { font-size: 16px; font-weight: 600; margin: 0; text-align: center; }
+		.p { font-size: 12px; margin: 0; text-align: center; color: #444; word-break: break-word; }
+		.actions { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+		.btn { appearance: none; border: 0; padding: 10px 14px; border-radius: 10px; background: #111; color: #fff; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+		.btn:active { transform: translateY(1px); }
+		.btn-ghost { background: transparent; color: #111; border: 1px solid #ccc; }
+		@media print { .actions { display: none; } }
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<p class="h1">${safeTitle}</p>
+		<img src="${dataUrl}" alt="QR Code" />
+		<p class="p">${safeUrl}</p>
+	</div>
+	<div class="actions">
+		<button class="btn" type="button" onclick="window.print()">
+			<svg style="opacity:.8" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+				<path fill="currentColor" d="M6 7V3h12v4h-2V5H8v2H6Zm0 14v-5H4a2 2 0 0 1-2-2v-5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v5a2 2 0 0 1-2 2h-2v5H6Zm2-2h8v-6H8v6Zm12-7a1 1 0 0 0 1-1a1 1 0 0 0-1-1a1 1 0 0 0-1 1a1 1 0 0 0 1 1Z"/>
+			</svg>
+			Print
+		</button>
+		<button class="btn btn-ghost" type="button" onclick="window.close()">Close</button>
+	</div>
+</body>
+</html>`);
+
+			// Best effort cleanup of the blob URL from the opener.
+			setTimeout(() => {
+				if (blobUrl) URL.revokeObjectURL(blobUrl);
+			}, 30_000);
+		} catch (err) {
+			console.error(err);
+			navigateWithHtml(`<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Print failed</title>
+	<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}</style>
+</head>
+<body>
+	<p>Sorry — we couldn’t prepare this QR for printing.</p>
+	<p>Please close this tab and try again.</p>
+</body>
+</html>`);
+
+			setTimeout(() => {
+				if (blobUrl) URL.revokeObjectURL(blobUrl);
+			}, 30_000);
+		}
+	}, [qr.label, qr.targetUrl, resolveQrImageDataUrl]);
+
 	return (
 		<div className='card bg-base-100 shadow-md p-4 flex flex-col items-center gap-3'>
-			<div className='p-2 bg-base-200 rounded-xl'>
+			<div className='p-2 bg-base-200 rounded-xl' ref={qrRenderRef}>
 				<ClientQRCode
 					data={qr.targetUrl}
 					className='size-36 rounded bg-white p-3 shadow'
@@ -98,8 +274,7 @@ export function QrCard({
 							className='select select-bordered select-sm w-full'
 							value={editCategory}
 							onChange={(e) => onChangeCategory(e.target.value)}
-							required
-						>
+							required>
 							{Object.keys(CATEGORY_BADGE_CLASSES)
 								.sort()
 								.map((key) => (
@@ -148,6 +323,8 @@ export function QrCard({
 							onDelete={onDelete}
 							onVisit={onVisit}
 							onCopy={onCopy}
+							onDownloadPng={onDownloadPng}
+							onPrint={onPrint}
 							createdAt={qr.createdAt}
 						/>
 					</div>
@@ -155,8 +332,7 @@ export function QrCard({
 					<div className='text-center w-full'>
 						<p
 							className='font-medium text-sm wrap-break-word min-h-5'
-							aria-hidden={!qr.label}
-						>
+							aria-hidden={!qr.label}>
 							{qr.label ?? '\u00A0'}
 						</p>
 						<p

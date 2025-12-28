@@ -12,6 +12,8 @@ type QrCardActionsProps = {
 	onDelete: () => void;
 	onVisit: () => void;
 	onCopy: () => void;
+	onDownloadPng: () => void;
+	onPrint: () => void;
 	createdAt?: string;
 };
 
@@ -20,6 +22,8 @@ export function QrCardActions({
 	onDelete,
 	onVisit,
 	onCopy,
+	onDownloadPng,
+	onPrint,
 	createdAt,
 }: QrCardActionsProps) {
 	return (
@@ -36,6 +40,8 @@ export function QrCardActions({
 			<DropdownMenuContent
 				align='end'
 				className='w-44 rounded-md bg-neutral text-neutral-content shadow-lg p-2'>
+				<DropdownMenuItem onClick={onDownloadPng}>Download PNG</DropdownMenuItem>
+				<DropdownMenuItem onClick={onPrint}>Print</DropdownMenuItem>
 				<DropdownMenuItem onClick={onVisit}>Visit link</DropdownMenuItem>
 				<DropdownMenuItem onClick={onCopy}>Copy URL</DropdownMenuItem>
 				<DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
