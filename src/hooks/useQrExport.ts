@@ -70,13 +70,11 @@ export function useQrExport({
 			await shareFiles({
 				files: [file],
 				title: label ?? 'QR Code',
-				text: label ? `QR: ${label}` : 'QR Code',
-				url: targetUrl,
+				text: label ? `QR: ${label}\n${targetUrl}` : targetUrl,
 			});
+
 			return;
 		}
-
-		// Fallback: copy URL (best effort) + download PNG
 		try {
 			await navigator.clipboard.writeText(targetUrl);
 		} catch {
