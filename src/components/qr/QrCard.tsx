@@ -144,11 +144,15 @@ export function QrCard({
 	}, [clearLongPress]);
 
 	const handlePointerDown = useCallback((e: React.PointerEvent) => {
-		// Prevent iOS Safari from selecting text / showing the copy callout on long-press.
-		e.preventDefault();
 		lastPointerTypeRef.current = e.pointerType;
 		// Only arm long-press when not already selecting and not editing
 		if (isSelecting || isEditing) return;
+
+		// Prevent iOS Safari from selecting text / showing the copy callout on long-press.
+		// Only do this for touch so we don't break normal desktop interactions.
+		if (e.pointerType === 'touch') {
+			e.preventDefault();
+		}
 
 		longPressTriggeredRef.current = false;
 		clearLongPress();
@@ -160,9 +164,7 @@ export function QrCard({
 		}, 520);
 	}, [clearLongPress, isEditing, isSelecting, onEnterSelectMode, haptic]);
 
-	const handlePointerUp = useCallback((e: React.PointerEvent) => {
-		// Prevent lingering selection behaviour.
-		e.preventDefault();
+	const handlePointerUp = useCallback(() => {
 		clearLongPress();
 	}, [clearLongPress]);
 
