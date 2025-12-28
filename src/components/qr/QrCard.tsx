@@ -118,6 +118,18 @@ export function QrCard({
 	const longPressTimerRef = useRef<number | null>(null);
 	const longPressTriggeredRef = useRef(false);
 
+	const lastPointerTypeRef = useRef<string | null>(null);
+
+	const haptic = useCallback((ms = 10) => {
+		// Light haptic feedback on supported devices (mostly Android).
+		if (typeof navigator === 'undefined') return;
+		// Prefer touch interactions.
+		if (lastPointerTypeRef.current && lastPointerTypeRef.current !== 'touch') return;
+		if (typeof (navigator as any).vibrate === 'function') {
+			(navigator as any).vibrate(ms);
+		}
+	}, []);
+
 	const clearLongPress = useCallback(() => {
 		if (longPressTimerRef.current) {
 			window.clearTimeout(longPressTimerRef.current);
@@ -134,6 +146,7 @@ export function QrCard({
 	const handlePointerDown = useCallback((e: React.PointerEvent) => {
 		// Prevent iOS Safari from selecting text / showing the copy callout on long-press.
 		e.preventDefault();
+		lastPointerTypeRef.current = e.pointerType;
 		// Only arm long-press when not already selecting and not editing
 		if (isSelecting || isEditing) return;
 
@@ -142,9 +155,10 @@ export function QrCard({
 
 		longPressTimerRef.current = window.setTimeout(() => {
 			longPressTriggeredRef.current = true;
+			haptic(12);
 			onEnterSelectMode();
 		}, 520);
-	}, [clearLongPress, isEditing, isSelecting, onEnterSelectMode]);
+	}, [clearLongPress, isEditing, isSelecting, onEnterSelectMode, haptic]);
 
 	const handlePointerUp = useCallback((e: React.PointerEvent) => {
 		// Prevent lingering selection behaviour.
@@ -155,10 +169,11 @@ export function QrCard({
 	const handleCardClick = useCallback(() => {
 		// When selecting, tapping the card toggles selection.
 		if (isSelecting) {
+			haptic(8);
 			onToggleSelect();
 			return;
 		}
-	}, [isSelecting, onToggleSelect]);
+	}, [isSelecting, onToggleSelect, haptic]);
 
 	return (
 		<div
@@ -174,24 +189,27 @@ export function QrCard({
 			tabIndex={isSelecting ? 0 : undefined}
 			onContextMenu={(e) => e.preventDefault()}
 		>
-			{isSelecting ? (
-				<button
-					type='button'
-					className='absolute top-3 left-3 z-10'
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						onToggleSelect();
-					}}
-					aria-label={isSelected ? 'Deselect QR' : 'Select QR'}>
-					<input
-						type='checkbox'
-						className='checkbox checkbox-primary'
-						checked={isSelected}
-						readOnly
-					/>
-				</button>
-			) : null}
+			<button
+				type='button'
+				className={`absolute top-3 left-3 z-10 ${
+					isSelecting ? 'transition-opacity duration-200 opacity-100' : 'hidden'
+				}`}
+				onClick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					haptic(8);
+					onToggleSelect();
+				}}
+				aria-label={isSelected ? 'Deselect QR' : 'Select QR'}
+				aria-hidden={!isSelecting}
+			>
+				<input
+					type='checkbox'
+					className='checkbox checkbox-primary'
+					checked={isSelected}
+					readOnly
+				/>
+			</button>
 			<div className='p-2 bg-base-200 rounded-xl' ref={qrRenderRef}>
 				<ClientQRCode
 					data={qr.targetUrl}

@@ -1,4 +1,3 @@
-//src/components/qr/QrCardActions.tsx
 'use client';
 
 import {
@@ -66,7 +65,7 @@ export function QrCardActions({
 					<DropdownMenuItem
 						disabled
 						className='text-[10px] opacity-20 cursor-default'>
-						Added: {new Date(createdAt).toLocaleDateString()}
+						Added: {new Date(createdAt).toLocaleDateString('en-GB')}
 					</DropdownMenuItem>
 				)}
 			</DropdownMenuContent>
