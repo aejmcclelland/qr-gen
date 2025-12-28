@@ -1,6 +1,6 @@
 'use client';
 
-import { type ChangeEvent, type FormEvent, useCallback, useRef } from 'react';
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef } from 'react';
 import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
 import { useQrExport } from '@/hooks/useQrExport';
@@ -38,6 +38,10 @@ type QrCardProps = {
 	editUrl: string;
 	savingEdit: boolean;
 	editCategory: string;
+	isSelecting: boolean;
+	isSelected: boolean;
+	onToggleSelect: () => void;
+	onEnterSelectMode: () => void;
 	onStartEdit: () => void;
 	onCancelEdit: () => void;
 	onChangeLabel: (value: string) => void;
@@ -56,6 +60,10 @@ export function QrCard({
 	editCategory,
 	editUrl,
 	savingEdit,
+	isSelecting,
+	isSelected,
+	onToggleSelect,
+	onEnterSelectMode,
 	onStartEdit,
 	onCancelEdit,
 	onChangeLabel,
@@ -107,8 +115,83 @@ export function QrCard({
 		}
 	}, [share]);
 
+	const longPressTimerRef = useRef<number | null>(null);
+	const longPressTriggeredRef = useRef(false);
+
+	const clearLongPress = useCallback(() => {
+		if (longPressTimerRef.current) {
+			window.clearTimeout(longPressTimerRef.current);
+			longPressTimerRef.current = null;
+		}
+	}, []);
+
+	useEffect(() => {
+		return () => {
+			clearLongPress();
+		};
+	}, [clearLongPress]);
+
+	const handlePointerDown = useCallback((e: React.PointerEvent) => {
+		// Prevent iOS Safari from selecting text / showing the copy callout on long-press.
+		e.preventDefault();
+		// Only arm long-press when not already selecting and not editing
+		if (isSelecting || isEditing) return;
+
+		longPressTriggeredRef.current = false;
+		clearLongPress();
+
+		longPressTimerRef.current = window.setTimeout(() => {
+			longPressTriggeredRef.current = true;
+			onEnterSelectMode();
+		}, 520);
+	}, [clearLongPress, isEditing, isSelecting, onEnterSelectMode]);
+
+	const handlePointerUp = useCallback((e: React.PointerEvent) => {
+		// Prevent lingering selection behaviour.
+		e.preventDefault();
+		clearLongPress();
+	}, [clearLongPress]);
+
+	const handleCardClick = useCallback(() => {
+		// When selecting, tapping the card toggles selection.
+		if (isSelecting) {
+			onToggleSelect();
+			return;
+		}
+	}, [isSelecting, onToggleSelect]);
+
 	return (
-		<div className='card bg-base-100 shadow-md p-4 flex flex-col items-center gap-3'>
+		<div
+			className={`card bg-base-100 shadow-md p-4 flex flex-col items-center gap-3 relative select-none touch-manipulation ${
+				isSelecting && isSelected ? 'ring ring-primary ring-offset-2 ring-offset-base-100' : ''
+			}`}
+			onPointerDown={handlePointerDown}
+			onPointerUp={handlePointerUp}
+			onPointerCancel={handlePointerUp}
+			onPointerLeave={handlePointerUp}
+			onClick={handleCardClick}
+			role={isSelecting ? 'button' : undefined}
+			tabIndex={isSelecting ? 0 : undefined}
+			onContextMenu={(e) => e.preventDefault()}
+		>
+			{isSelecting ? (
+				<button
+					type='button'
+					className='absolute top-3 left-3 z-10'
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						onToggleSelect();
+					}}
+					aria-label={isSelected ? 'Deselect QR' : 'Select QR'}>
+					<input
+						type='checkbox'
+						className='checkbox checkbox-primary'
+						checked={isSelected}
+						readOnly
+					/>
+				</button>
+			) : null}
 			<div className='p-2 bg-base-200 rounded-xl' ref={qrRenderRef}>
 				<ClientQRCode
 					data={qr.targetUrl}
@@ -183,19 +266,22 @@ export function QrCard({
 				</form>
 			) : (
 				<>
-					<div className='w-full flex justify-end'>
-						<QrCardActions
-							onEdit={onStartEdit}
-							onDelete={onDelete}
-							onVisit={onVisit}
-							onCopy={onCopy}
-							onDownloadPng={onDownloadPng}
-							onDownloadJpg={onDownloadJpg}
-							onPrint={onPrint}
-							onShare={onShare}
-							createdAt={qr.createdAt}
-						/>
-					</div>
+					{!isSelecting ? (
+						<div className='w-full flex justify-end'>
+							<QrCardActions
+								onEdit={onStartEdit}
+								onDelete={onDelete}
+								onVisit={onVisit}
+								onCopy={onCopy}
+								onDownloadPng={onDownloadPng}
+								onDownloadJpg={onDownloadJpg}
+								onPrint={onPrint}
+								onShare={onShare}
+								onSelect={onEnterSelectMode}
+								createdAt={qr.createdAt}
+							/>
+						</div>
+					) : null}
 
 					<div className='text-center w-full'>
 						<p

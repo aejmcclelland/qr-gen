@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { Toast } from '@/components/ui/Toast';
 import { QrCard } from '@/components/qr/QrCard';
+
+import SelectionToolbar from '@/components/qr/SelectionToolbar';
+import ConfirmDeleteModal from '@/components/qr/ConfirmDeleteModal';
 
 type Qr = {
 	id: string;
@@ -35,6 +38,11 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 		variant: 'info',
 	});
 
+	const [isSelecting, setIsSelecting] = useState(false);
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+	const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+	const [confirmOpen, setConfirmOpen] = useState(false);
+
 	const handleDelete = async (id: string) => {
 		if (!confirm('Delete this QR code?')) return;
 
@@ -47,6 +55,21 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 			if (!res.ok) throw new Error('Failed to delete');
 
 			setQrs((prev) => prev.filter((qr) => qr.id !== id));
+
+			// If this QR was selected, remove it from the selection.
+			setSelectedIds((prev) => {
+				if (!prev.has(id)) return prev;
+				const next = new Set(prev);
+				next.delete(id);
+
+				// If nothing is selected after deletion, exit selection mode.
+				if (next.size === 0) {
+					setIsSelecting(false);
+				}
+
+				return next;
+			});
+
 			setToast({
 				show: true,
 				message: 'QR code deleted.',
@@ -75,6 +98,83 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 		setEditCategory('');
 		setEditUrl('');
 	};
+
+	const startSelecting = useCallback((initialId?: string) => {
+		setIsSelecting(true);
+		if (initialId) {
+			setSelectedIds(() => new Set([initialId]));
+		}
+	}, []);
+
+	const toggleSelected = useCallback((id: string) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+
+			// If nothing is selected, exit selection mode.
+			if (next.size === 0) {
+				setIsSelecting(false);
+			}
+
+			return next;
+		});
+	}, []);
+
+	const clearSelection = useCallback(() => {
+		setIsSelecting(false);
+		setSelectedIds(() => new Set());
+	}, []);
+
+	const bulkDeleteSelected = useCallback(async () => {
+		const ids = Array.from(selectedIds);
+		if (ids.length === 0) {
+			setToast({
+				show: true,
+				message: 'Select at least one QR to delete.',
+				variant: 'warning',
+			});
+			return;
+		}
+
+		setIsBulkDeleting(true);
+		try {
+			const results = await Promise.all(
+				ids.map(async (id) => {
+					const res = await fetch(`/api/qrs/${id}`, { method: 'DELETE' });
+					return { id, ok: res.ok };
+				})
+			);
+
+			const failed = results.filter((r) => !r.ok).map((r) => r.id);
+			if (failed.length > 0) {
+				throw new Error(
+					failed.length === 1
+						? 'Failed to delete 1 QR code.'
+						: `Failed to delete ${failed.length} QR codes.`
+				);
+			}
+
+			setQrs((prev) => prev.filter((qr) => !selectedIds.has(qr.id)));
+			setToast({
+				show: true,
+				message: ids.length === 1 ? 'QR code deleted.' : `${ids.length} QR codes deleted.`,
+				variant: 'success',
+			});
+
+			setConfirmOpen(false);
+			clearSelection();
+		} catch (err) {
+			console.error(err);
+			setToast({
+				show: true,
+				message: err instanceof Error ? err.message : 'Failed to delete selected QR codes.',
+				variant: 'error',
+			});
+		} finally {
+			setIsBulkDeleting(false);
+		}
+	}, [clearSelection, selectedIds]);
 
 	const visibleQrs =
 		activeCategories.length === 0
@@ -161,6 +261,10 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 						editUrl={editUrl}
 						editCategory={editCategory}
 						savingEdit={savingEdit}
+						isSelecting={isSelecting}
+						isSelected={selectedIds.has(qr.id)}
+						onToggleSelect={() => toggleSelected(qr.id)}
+						onEnterSelectMode={() => startSelecting(qr.id)}
 						onStartEdit={() => startEdit(qr)}
 						onCancelEdit={cancelEdit}
 						onChangeLabel={setEditLabel}
@@ -182,6 +286,31 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 					/>
 				))}
 			</div>
+			<ConfirmDeleteModal
+				open={confirmOpen}
+				count={selectedIds.size}
+				isDeleting={isBulkDeleting}
+				onCancel={() => setConfirmOpen(false)}
+				onConfirm={bulkDeleteSelected}
+			/>
+			{isSelecting ? (
+				<SelectionToolbar
+					count={selectedIds.size}
+					isDeleting={isBulkDeleting}
+					onCancel={clearSelection}
+					onDelete={() => {
+						if (selectedIds.size === 0) {
+							setToast({
+								show: true,
+								message: 'Select at least one QR to delete.',
+								variant: 'warning',
+							});
+							return;
+						}
+						setConfirmOpen(true);
+					}}
+				/>
+			) : null}
 		</>
 	);
 }

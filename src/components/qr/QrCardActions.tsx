@@ -1,3 +1,4 @@
+//src/components/qr/QrCardActions.tsx
 'use client';
 
 import {
@@ -16,6 +17,7 @@ type QrCardActionsProps = {
 	onDownloadJpg: () => void;
 	onPrint: () => void;
 	onShare?: () => void | Promise<void>;
+	onSelect?: () => void | Promise<void>;
 	createdAt?: string;
 };
 
@@ -28,6 +30,7 @@ export function QrCardActions({
 	onDownloadJpg,
 	onPrint,
 	onShare,
+	onSelect,
 	createdAt,
 }: QrCardActionsProps) {
 	return (
@@ -52,6 +55,9 @@ export function QrCardActions({
 				) : null}
 				<DropdownMenuItem onClick={onVisit}>Visit link</DropdownMenuItem>
 				<DropdownMenuItem onClick={onCopy}>Copy URL</DropdownMenuItem>
+				{onSelect ? (
+					<DropdownMenuItem onClick={onSelect}>Select</DropdownMenuItem>
+				) : null}
 				<DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
 				<DropdownMenuItem className='text-error' onClick={onDelete}>
 					Delete
