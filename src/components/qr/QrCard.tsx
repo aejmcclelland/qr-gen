@@ -7,6 +7,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react';
+import { toast } from 'react-toastify';
 import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
 import { useQrExport } from '@/hooks/useQrExport';
@@ -18,6 +19,16 @@ type Qr = {
 	category: string;
 	createdAt: string;
 };
+
+function isIosSafari() {
+	if (typeof navigator === 'undefined') return false;
+	const ua = navigator.userAgent || '';
+	const isIOS = /iPhone|iPad|iPod/i.test(ua);
+	const isWebKit = /WebKit/i.test(ua);
+	const isCriOS = /CriOS/i.test(ua);
+	const isFxiOS = /FxiOS/i.test(ua);
+	return isIOS && isWebKit && !isCriOS && !isFxiOS;
+}
 
 const CATEGORY_BADGE_CLASSES: Record<string, string> = {
 	personal: 'badge-primary',
@@ -105,12 +116,15 @@ export function QrCard({
 		}
 	}, [downloadJpg]);
 
-	const onPrint = useCallback(async () => {
-		try {
-			await print();
-		} catch (err) {
-			console.error(err);
-		}
+	const onPrint = useCallback(() => {
+		// Important: don't return a Promise from an onClick handler used by the dropdown.
+		// Some UI libs don't await handlers, and Next dev can treat rejections as uncaught.
+		void print().catch((err) => {
+			const message =
+				err instanceof Error ? err.message : 'Print failed. Please try again.';
+			console.warn('[print]', message);
+			toast.info(message, { autoClose: 6000 });
+		});
 	}, [print]);
 
 	const onShare = useCallback(async () => {
@@ -312,6 +326,7 @@ export function QrCard({
 								onPrint={onPrint}
 								onShare={onShare}
 								createdAt={qr.createdAt}
+								isPrintDisabled={isIosSafari()}
 							/>
 						</div>
 					) : null}

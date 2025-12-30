@@ -75,9 +75,9 @@ export async function resolveQrCanvasFromElement(
 	}
 
 	// Fallback: existing canvas
-	const existingCanvas = rootEl.querySelector(
-		'canvas'
-	) as HTMLCanvasElement | null;
+	const existingCanvas = rootEl.querySelector('canvas') as
+		| HTMLCanvasElement
+		| null;
 	if (existingCanvas) {
 		// Copy it into a fresh canvas at the desired output size
 		const canvas = document.createElement('canvas');
@@ -193,9 +193,10 @@ export function downloadCanvasAsJpg(
 
 /**
  * Opens a calm print preview tab (no auto-print). User taps Print.
- * Uses a Blob URL to avoid document.write().
  *
  * Returns the opened window, or null if a pop-up blocker prevented opening.
+ * Note: Safari can render a blank about:blank when using Blob URL navigation,
+ * so we write the HTML directly into the new window.
  */
 export function openPrintPreview(params: {
 	dataUrl: string;
@@ -204,35 +205,13 @@ export function openPrintPreview(params: {
 }): Window | null {
 	if (typeof window === 'undefined') return null;
 
-	const w = window.open('', '_blank', 'noopener,noreferrer');
+	const w = window.open('', '_blank');
 	if (!w) return null;
-
-	let blobUrl: string | null = null;
-
-	const navigateWithHtml = (html: string) => {
-		const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-		blobUrl = URL.createObjectURL(blob);
-		w.location.replace(blobUrl);
-	};
-
-	// placeholder
-	navigateWithHtml(`<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Preparing print…</title>
-  <style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}</style>
-</head>
-<body>
-  <p>Preparing your QR for printing…</p>
-</body>
-</html>`);
 
 	const safeTitle = escapeHtml(params.title || 'QR Code');
 	const safeUrl = escapeHtml(params.url ?? '');
 
-	navigateWithHtml(`<!doctype html>
+	const html = `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -240,16 +219,16 @@ export function openPrintPreview(params: {
   <title>${safeTitle}</title>
   <style>
     @page { margin: 12mm; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: 24px; box-sizing: border-box; }
     .wrap { display: grid; place-items: center; gap: 12px; }
-    img { width: 240px; height: 240px; image-rendering: pixelated; }
+    img { width: 240px; height: 240px; image-rendering: pixelated; border: 1px solid #ddd; border-radius: 12px; background: #fff; }
     .h1 { font-size: 16px; font-weight: 600; margin: 0; text-align: center; }
     .p { font-size: 12px; margin: 0; text-align: center; color: #444; word-break: break-word; }
     .actions { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
     .btn { appearance: none; border: 0; padding: 10px 14px; border-radius: 10px; background: #111; color: #fff; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
     .btn:active { transform: translateY(1px); }
     .btn-ghost { background: transparent; color: #111; border: 1px solid #ccc; }
-    @media print { .actions { display: none; } }
+    @media print { .actions { display: none; } body { padding: 0; } img { border: none; border-radius: 0; } }
   </style>
 </head>
 <body>
@@ -259,21 +238,22 @@ export function openPrintPreview(params: {
     ${safeUrl ? `<p class="p">${safeUrl}</p>` : ''}
   </div>
   <div class="actions">
-    <button class="btn" type="button" onclick="window.print()">
-      <svg style="opacity:.8" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-        <path fill="currentColor" d="M6 7V3h12v4h-2V5H8v2H6Zm0 14v-5H4a2 2 0 0 1-2-2v-5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v5a2 2 0 0 1-2 2h-2v5H6Zm2-2h8v-6H8v6Zm12-7a1 1 0 0 0 1-1a1 1 0 0 0-1-1a1 1 0 0 0-1 1a1 1 0 0 0 1 1Z"/>
-      </svg>
-      Print
-    </button>
+    <button class="btn" type="button" onclick="window.print()">Print</button>
     <button class="btn btn-ghost" type="button" onclick="window.close()">Close</button>
   </div>
 </body>
-</html>`);
+</html>`;
 
-	// cleanup
-	setTimeout(() => {
-		if (blobUrl) URL.revokeObjectURL(blobUrl);
-	}, 30_000);
+	try {
+		w.document.open();
+		w.document.write(html);
+		w.document.close();
+	} catch (e) {
+		try {
+			w.close();
+		} catch (_) {}
+		return null;
+	}
 
 	return w;
 }

@@ -17,6 +17,7 @@ type QrCardActionsProps = {
 	onPrint: () => void;
 	onShare?: () => void | Promise<void>;
 	createdAt?: string;
+	isPrintDisabled?: boolean;
 };
 
 export function QrCardActions({
@@ -29,6 +30,7 @@ export function QrCardActions({
 	onPrint,
 	onShare,
 	createdAt,
+	isPrintDisabled,
 }: QrCardActionsProps) {
 	return (
 		<DropdownMenu>
@@ -50,7 +52,9 @@ export function QrCardActions({
 				<DropdownMenuItem onClick={onDownloadJpg}>
 					Download JPG
 				</DropdownMenuItem>
-				<DropdownMenuItem onClick={onPrint}>Print</DropdownMenuItem>
+				<DropdownMenuItem onClick={onPrint} disabled={isPrintDisabled}>
+					Print
+				</DropdownMenuItem>
 				{onShare ? (
 					<DropdownMenuItem onClick={onShare}>Share</DropdownMenuItem>
 				) : null}

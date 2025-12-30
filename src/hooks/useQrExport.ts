@@ -85,11 +85,21 @@ export function useQrExport({
 
 		const canvas = await exportCanvas();
 		const dataUrl = canvasToDataUrlPng(canvas);
-		openPrintPreview({
+		const opened = openPrintPreview({
 			dataUrl,
 			title: label ?? 'QR Code',
 			url: targetUrl,
 		});
+
+		// Pop-up blockers: window.open can return null.
+		if (!opened) {
+			const extra = isSafariDesktop()
+				? ' Safari may be blocking pop-ups.'
+				: ' Your browser may be blocking pop-ups.';
+			throw new Error(
+				`Pop-ups are blocked, so the print preview couldn't open.${extra} Please allow pop-ups for this site and try again.`
+			);
+		}
 	};
 
 	const share = async (): Promise<ShareResult> => {
