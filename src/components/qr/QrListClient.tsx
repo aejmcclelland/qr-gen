@@ -221,7 +221,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 			const data = await res.json().catch(() => null);
 
 			if (!res.ok) {
-				// ✅ Machine-readable handling
+				//  Machine-readable handling
 				if (data?.code === 'BULK_MIN_2') {
 					setToast({
 						show: true,

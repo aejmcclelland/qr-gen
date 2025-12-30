@@ -13,19 +13,22 @@ import {
 	shareFiles,
 } from '@/lib/qrExport';
 
-// function isAppleShareTarget() {
-// 	if (typeof navigator === 'undefined') return false;
-// 	const ua = navigator.userAgent || '';
-// 	// iOS Safari (and iPadOS) are the main culprits for the “caption card” layout when sharing files.
-// 	// We keep this intentionally simple and conservative.
-// 	return /iPhone|iPad|iPod/i.test(ua);
-// }
+function isIosSafari() {
+	if (typeof navigator === 'undefined') return false;
+	const ua = navigator.userAgent || '';
+	const isIOS = /iPhone|iPad|iPod/i.test(ua);
+	// iOS browsers are all WebKit; printing via a popup window is unreliable / often blocked.
+	const isWebKit = /WebKit/i.test(ua);
+	const isCriOS = /CriOS/i.test(ua);
+	const isFxiOS = /FxiOS/i.test(ua);
+	return isIOS && isWebKit && !isCriOS && !isFxiOS;
+}
 
-function buildShareText(params: { label: string | null; url: string }) {
-	const cleanLabel = (params.label ?? '').trim();
-	// Keep it short and “message-like”.
-	if (cleanLabel) return `QR: ${cleanLabel}\n${params.url}`;
-	return params.url;
+function isSafariDesktop() {
+	if (typeof navigator === 'undefined') return false;
+	const ua = navigator.userAgent || '';
+	// “Safari” present, but not Chrome/Edge/Firefox.
+	return /Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|Firefox/i.test(ua);
 }
 
 export type ShareResult =
@@ -72,6 +75,14 @@ export function useQrExport({
 	};
 
 	const print = async () => {
+		// iOS Safari: popup-based print previews are frequently blocked and/or do nothing.
+		// Provide a clear message instead of silently failing.
+		if (isIosSafari()) {
+			throw new Error(
+				"Printing isn't supported on iOS Safari. Please download the QR image instead."
+			);
+		}
+
 		const canvas = await exportCanvas();
 		const dataUrl = canvasToDataUrlPng(canvas);
 		openPrintPreview({

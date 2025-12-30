@@ -194,14 +194,18 @@ export function downloadCanvasAsJpg(
 /**
  * Opens a calm print preview tab (no auto-print). User taps Print.
  * Uses a Blob URL to avoid document.write().
+ *
+ * Returns the opened window, or null if a pop-up blocker prevented opening.
  */
 export function openPrintPreview(params: {
 	dataUrl: string;
 	title: string;
-	url: string;
-}) {
-	const w = window.open('', '_blank');
-	if (!w) return;
+	url?: string;
+}): Window | null {
+	if (typeof window === 'undefined') return null;
+
+	const w = window.open('', '_blank', 'noopener,noreferrer');
+	if (!w) return null;
 
 	let blobUrl: string | null = null;
 
@@ -226,7 +230,7 @@ export function openPrintPreview(params: {
 </html>`);
 
 	const safeTitle = escapeHtml(params.title || 'QR Code');
-	const safeUrl = escapeHtml(params.url || '');
+	const safeUrl = escapeHtml(params.url ?? '');
 
 	navigateWithHtml(`<!doctype html>
 <html>
@@ -252,7 +256,7 @@ export function openPrintPreview(params: {
   <div class="wrap">
     <p class="h1">${safeTitle}</p>
     <img src="${params.dataUrl}" alt="QR Code" />
-    <p class="p">${safeUrl}</p>
+    ${safeUrl ? `<p class="p">${safeUrl}</p>` : ''}
   </div>
   <div class="actions">
     <button class="btn" type="button" onclick="window.print()">
@@ -270,4 +274,6 @@ export function openPrintPreview(params: {
 	setTimeout(() => {
 		if (blobUrl) URL.revokeObjectURL(blobUrl);
 	}, 30_000);
+
+	return w;
 }
