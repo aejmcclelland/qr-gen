@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
 		console.error('[health] DB check failed', error);
 
 		await postToSlack(
-			`🚨 *qrvault health check failed*\n• env: ${
+			` *qrvault health check failed*\n• env: ${
 				process.env.VERCEL ? 'vercel' : 'local'
 			}\n• time: ${new Date().toISOString()}\n• error: ${
 				(error as Error)?.message ?? String(error)

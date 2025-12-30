@@ -13,13 +13,13 @@ import {
 	shareFiles,
 } from '@/lib/qrExport';
 
-function isAppleShareTarget() {
-	if (typeof navigator === 'undefined') return false;
-	const ua = navigator.userAgent || '';
-	// iOS Safari (and iPadOS) are the main culprits for the “caption card” layout when sharing files.
-	// We keep this intentionally simple and conservative.
-	return /iPhone|iPad|iPod/i.test(ua);
-}
+// function isAppleShareTarget() {
+// 	if (typeof navigator === 'undefined') return false;
+// 	const ua = navigator.userAgent || '';
+// 	// iOS Safari (and iPadOS) are the main culprits for the “caption card” layout when sharing files.
+// 	// We keep this intentionally simple and conservative.
+// 	return /iPhone|iPad|iPod/i.test(ua);
+// }
 
 function buildShareText(params: { label: string | null; url: string }) {
 	const cleanLabel = (params.label ?? '').trim();

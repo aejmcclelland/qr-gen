@@ -17,6 +17,8 @@ model qrcodes {
   createdAt DateTime  @default(now())
   updatedAt DateTime?
   user      User?     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, targetUrl])
 }
 
 model User {

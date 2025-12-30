@@ -3,9 +3,9 @@
 import { useCallback, useState, type FormEvent } from 'react';
 import { Toast } from '@/components/ui/Toast';
 import { QrCard } from '@/components/qr/QrCard';
-
-import SelectionToolbar from '@/components/qr/SelectionToolbar';
 import ConfirmDeleteModal from '@/components/qr/ConfirmDeleteModal';
+import { BulkActionBar } from '@/components/qr/BulkActionBar';
+import { CheckSquare } from 'lucide-react';
 
 type Qr = {
 	id: string;
@@ -28,6 +28,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 	const [editUrl, setEditUrl] = useState('');
 	const [editCategory, setEditCategory] = useState('');
 	const [savingEdit, setSavingEdit] = useState(false);
+
 	const [toast, setToast] = useState<{
 		show: boolean;
 		message: string;
@@ -42,6 +43,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 	const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 	const [confirmOpen, setConfirmOpen] = useState(false);
+	const [isBulkDownloading, setIsBulkDownloading] = useState(false);
 
 	const handleDelete = async (id: string) => {
 		if (!confirm('Delete this QR code?')) return;
@@ -126,6 +128,28 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 		setSelectedIds(() => new Set());
 	}, []);
 
+	// Move visibleQrs before toggleSelectAll
+	const visibleQrs =
+		activeCategories.length === 0
+			? qrs
+			: qrs.filter((qr) => activeCategories.includes(qr.category));
+
+	const toggleSelectAll = useCallback(
+		(nextSelectAll: boolean) => {
+			if (!nextSelectAll) {
+				clearSelection();
+				return;
+			}
+
+			// Ensure selection mode is active
+			setIsSelecting(true);
+
+			// Select all currently visible QR ids (respects active category filters)
+			setSelectedIds(() => new Set(visibleQrs.map((qr) => qr.id)));
+		},
+		[clearSelection, visibleQrs]
+	);
+
 	const bulkDeleteSelected = useCallback(async () => {
 		const ids = Array.from(selectedIds);
 		if (ids.length === 0) {
@@ -158,7 +182,10 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 			setQrs((prev) => prev.filter((qr) => !selectedIds.has(qr.id)));
 			setToast({
 				show: true,
-				message: ids.length === 1 ? 'QR code deleted.' : `${ids.length} QR codes deleted.`,
+				message:
+					ids.length === 1
+						? 'QR code deleted.'
+						: `${ids.length} QR codes deleted.`,
 				variant: 'success',
 			});
 
@@ -168,7 +195,10 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 			console.error(err);
 			setToast({
 				show: true,
-				message: err instanceof Error ? err.message : 'Failed to delete selected QR codes.',
+				message:
+					err instanceof Error
+						? err.message
+						: 'Failed to delete selected QR codes.',
 				variant: 'error',
 			});
 		} finally {
@@ -176,11 +206,66 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 		}
 	}, [clearSelection, selectedIds]);
 
-	const visibleQrs =
-		activeCategories.length === 0
-			? qrs
-			: qrs.filter((qr) => activeCategories.includes(qr.category));
+	const bulkDownloadSelected = useCallback(async () => {
+		const ids = Array.from(selectedIds);
 
+		if (ids.length === 1) {
+			setToast({
+				show: true,
+				message:
+					'To download one QR, use the Download option on the QR card menu.',
+				variant: 'info',
+			});
+			return;
+		}
+
+		setIsBulkDownloading(true);
+
+		try {
+			const res = await fetch('/api/qrs/download', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ ids }),
+			});
+
+			if (!res.ok) {
+				const msg = await res.text().catch(() => '');
+				throw new Error(msg || 'Download failed');
+			}
+
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+
+			const a = document.createElement('a');
+			a.href = url;
+
+			// If >1, it'll be ZIP. If 1, it'll be PNG.
+			a.download = ids.length > 1 ? 'qrvault-qrs.zip' : 'qr.png';
+
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+
+			setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+			setToast({
+				show: true,
+				message:
+					ids.length === 1 ? 'QR downloaded.' : `${ids.length} QRs downloaded.`,
+				variant: 'success',
+			});
+		} catch (err) {
+			console.error(err);
+			setToast({
+				show: true,
+				message:
+					err instanceof Error ? err.message : 'Failed to download QR codes.',
+				variant: 'error',
+			});
+		} finally {
+			setIsBulkDownloading(false);
+		}
+	}, [selectedIds]);
 	const handleEditSubmit = async (
 		e: FormEvent<HTMLFormElement>,
 		id: string
@@ -236,6 +321,39 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 		);
 	}
 
+	// const bulkDownloadSelected = useCallback(async () => {
+	// 	if (selectedIds.size === 0) return;
+
+	// 	setIsBulkDownloading(true);
+
+	// 	try {
+	// 		// TEMP / MVP behaviour:
+	// 		// For now just trigger per-QR downloads
+	// 		for (const id of selectedIds) {
+	// 			const qr = qrs.find((q) => q.id === id);
+	// 			if (!qr) continue;
+
+	// 			// reuse existing single-download logic later
+	// 			window.open(`/api/qrs/${id}/download`, '_blank');
+	// 		}
+
+	// 		setToast({
+	// 			show: true,
+	// 			message: `${selectedIds.size} QR codes downloading…`,
+	// 			variant: 'success',
+	// 		});
+	// 	} catch (err) {
+	// 		console.error(err);
+	// 		setToast({
+	// 			show: true,
+	// 			message: 'Failed to download QR codes.',
+	// 			variant: 'error',
+	// 		});
+	// 	} finally {
+	// 		setIsBulkDownloading(false);
+	// 	}
+	// }, [selectedIds, qrs]);
+
 	return (
 		<>
 			<Toast
@@ -251,7 +369,19 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 				}
 			/>
 
-			<div className='grid gap-6 sm:grid-cols-2 md:grid-cols-3'>
+			<div className='flex items-center justify-between mb-3'>
+				<h2 className='text-lg font-semibold'>Your QR Codes</h2>
+				{!isSelecting ? (
+					<button
+						type='button'
+						className='btn btn-neutral btn-sm rounded-full gap-2'
+						onClick={() => startSelecting()}>
+						<CheckSquare className='w-4 h-4 text-primary' />
+						Select
+					</button>
+				) : null}
+			</div>
+			<div className='grid gap-6 sm:grid-cols-2 md:grid-cols-3 pb-24'>
 				{visibleQrs.map((qr) => (
 					<QrCard
 						key={qr.id}
@@ -294,10 +424,14 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 				onConfirm={bulkDeleteSelected}
 			/>
 			{isSelecting ? (
-				<SelectionToolbar
-					count={selectedIds.size}
+				<BulkActionBar
+					selectedCount={selectedIds.size}
 					isDeleting={isBulkDeleting}
 					onCancel={clearSelection}
+					onToggleSelectAll={toggleSelectAll}
+					totalCount={visibleQrs.length}
+					isDownloading={isBulkDownloading}
+					onDownload={bulkDownloadSelected}
 					onDelete={() => {
 						if (selectedIds.size === 0) {
 							setToast({
@@ -309,6 +443,8 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 						}
 						setConfirmOpen(true);
 					}}
+					// Optional: wire later
+					// onDownload={() => ...}
 				/>
 			) : null}
 		</>

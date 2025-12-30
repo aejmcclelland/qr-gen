@@ -21,6 +21,9 @@ const GUEST_LIMIT_MESSAGE =
 const MUST_LOGIN_TO_SAVE_MESSAGE =
 	'To save QR codes and access them later, please log in or create a free account.';
 
+const ALREADY_CREATED_THIS_QR_CODE =
+	"You’ve already saved a QR for this URL. Open ‘My QRs’ to view it, or enter a different URL.";
+
 const CALLBACK_URL = '/qr';
 
 async function makeCanvasFromSvg(svgId: string) {
@@ -72,6 +75,10 @@ export function QrGeneratorCard() {
 	const [showToast, setShowToast] = useState(false);
 	const [category, setCategory] = useState('personal');
 
+	const [toastVariant, setToastVariant] = useState<
+		'info' | 'success' | 'error' | 'warning'
+	>('info');
+
 	const enforceGuestLimit = (nextValue: string) => {
 		// Logged-in users are always allowed
 		if (session) return true;
@@ -80,6 +87,7 @@ export function QrGeneratorCard() {
 
 		if (!limit.allowed) {
 			setSaveMessage(limit.message ?? GUEST_LIMIT_MESSAGE);
+			setToastVariant('warning');
 			setShowAuthActions(true);
 			setShowToast(true);
 			return false;
@@ -154,11 +162,13 @@ export function QrGeneratorCard() {
 		setShowToast(false);
 		setSaveMessage(null);
 		setShowAuthActions(false);
+		setToastVariant('info');
 
 		try {
 			// If the user is not logged in, guide them to login instead of calling the API
 			if (!session) {
 				setSaveMessage(MUST_LOGIN_TO_SAVE_MESSAGE);
+				setToastVariant('warning');
 				setShowAuthActions(true);
 				setShowToast(true);
 				return;
@@ -168,7 +178,7 @@ export function QrGeneratorCard() {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					targetUrl: value,
+					targetUrl: value.trim(),
 					label: label || undefined,
 					category,
 				}),
@@ -178,6 +188,13 @@ export function QrGeneratorCard() {
 				if (res.status === 401) {
 					setSaveMessage(MUST_LOGIN_TO_SAVE_MESSAGE);
 					setShowAuthActions(true);
+					setShowToast(true);
+					return;
+				}
+
+				if (res.status === 409) {
+					setSaveMessage(ALREADY_CREATED_THIS_QR_CODE);
+					setToastVariant('warning');
 					setShowToast(true);
 					return;
 				}
@@ -193,16 +210,19 @@ export function QrGeneratorCard() {
 				}
 
 				setSaveMessage(errorMessage);
+				setToastVariant('error');
 				setShowToast(true);
 				return;
 			}
 
 			setShowAuthActions(false);
 			setSaveMessage('Saved ✔');
+			setToastVariant('success');
 			setShowToast(true);
 		} catch (err) {
 			console.error('Error saving QR', err);
 			setSaveMessage('Failed to save');
+			setToastVariant('error');
 			setShowToast(true);
 		} finally {
 			setIsSaving(false);
@@ -243,34 +263,45 @@ export function QrGeneratorCard() {
 					<Toast
 						show={showToast}
 						message={saveMessage ?? 'Please log in or sign up to continue.'}
-						variant='info'
+						variant={toastVariant}
 						positionClassName='toast-top toast-center'
 						onClose={() => setShowToast(false)}
 						actions={
-							showAuthActions && (
+							(showAuthActions || saveMessage === ALREADY_CREATED_THIS_QR_CODE) && (
 								<div className='flex gap-2'>
-									<button
-										type='button'
-										className='btn btn-outline btn-xs'
-										onClick={() =>
-											router.push(
-												`/login?callbackURL=${encodeURIComponent(CALLBACK_URL)}`
-											)
-										}>
-										Log in
-									</button>
-									<button
-										type='button'
-										className='btn btn-primary btn-xs'
-										onClick={() =>
-											router.push(
-												`/signup?callbackURL=${encodeURIComponent(
-													CALLBACK_URL
-												)}`
-											)
-										}>
-										Sign up
-									</button>
+									{showAuthActions ? (
+										<>
+											<button
+												type='button'
+												className='btn btn-outline btn-xs'
+												onClick={() =>
+													router.push(
+														`/login?callbackURL=${encodeURIComponent(CALLBACK_URL)}`
+													)
+												}>
+												Log in
+											</button>
+											<button
+												type='button'
+												className='btn btn-primary btn-xs'
+												onClick={() =>
+													router.push(
+														`/signup?callbackURL=${encodeURIComponent(CALLBACK_URL)}`
+													)
+												}>
+												Sign up
+											</button>
+										</>
+									) : null}
+
+									{saveMessage === ALREADY_CREATED_THIS_QR_CODE ? (
+										<button
+											type='button'
+											className='btn btn-primary btn-xs'
+											onClick={() => router.push('/qr')}>
+											Open My QRs
+										</button>
+									) : null}
 								</div>
 							)
 						}

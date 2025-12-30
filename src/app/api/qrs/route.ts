@@ -52,20 +52,49 @@ export async function POST(req: NextRequest) {
 			category?: string;
 		};
 
-		if (!targetUrl) {
+		const normalizedTargetUrl = (targetUrl ?? '').toLowerCase();
+
+		if (!normalizedTargetUrl) {
 			return NextResponse.json(
 				{ error: 'targetUrl is required' },
 				{ status: 400 }
 			);
 		}
 
+		// Prevent duplicates for this user
+		const existing = await prisma.qrcodes.findFirst({
+			where: {
+				userId: session.userId,
+				targetUrl: normalizedTargetUrl,
+			},
+			select: {
+				id: true,
+				targetUrl: true,
+				label: true,
+				category: true,
+				createdAt: true,
+			},
+		});
+
+		if (existing) {
+			return NextResponse.json(
+				{
+					error: 'DUPLICATE_QR',
+					message:
+						'You have already saved this QR. Visit your saved QRs to view it or use a different URL.',
+					existing,
+				},
+				{ status: 409 }
+			);
+		}
+
 		const qr = await prisma.qrcodes.create({
 			data: {
-				targetUrl,
+				targetUrl: normalizedTargetUrl,
 				label,
 				category: category ?? 'personal',
 				userId: session.userId,
-				createdAt: new Date(), //explicitly set in case DB default isn’t applied
+				createdAt: new Date(),
 			},
 		});
 

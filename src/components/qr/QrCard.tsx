@@ -1,6 +1,12 @@
 'use client';
 
-import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef } from 'react';
+import {
+	type ChangeEvent,
+	type FormEvent,
+	useCallback,
+	useEffect,
+	useRef,
+} from 'react';
 import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
 import { useQrExport } from '@/hooks/useQrExport';
@@ -128,7 +134,8 @@ export function QrCard({
 		// Light haptic feedback on supported devices (mostly Android).
 		if (typeof navigator === 'undefined') return;
 		// Prefer touch interactions.
-		if (lastPointerTypeRef.current && lastPointerTypeRef.current !== 'touch') return;
+		if (lastPointerTypeRef.current && lastPointerTypeRef.current !== 'touch')
+			return;
 		if (typeof (navigator as any).vibrate === 'function') {
 			(navigator as any).vibrate(ms);
 		}
@@ -147,26 +154,29 @@ export function QrCard({
 		};
 	}, [clearLongPress]);
 
-	const handlePointerDown = useCallback((e: React.PointerEvent) => {
-		lastPointerTypeRef.current = e.pointerType;
-		// Only arm long-press when not already selecting and not editing
-		if (isSelecting || isEditing) return;
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			lastPointerTypeRef.current = e.pointerType;
+			// Only arm long-press when not already selecting and not editing
+			if (isSelecting || isEditing) return;
 
-		// Prevent iOS Safari from selecting text / showing the copy callout on long-press.
-		// Only do this for touch so we don't break normal desktop interactions.
-		if (e.pointerType === 'touch') {
-			e.preventDefault();
-		}
+			// Prevent iOS Safari from selecting text / showing the copy callout on long-press.
+			// Only do this for touch so we don't break normal desktop interactions.
+			if (e.pointerType === 'touch') {
+				e.preventDefault();
+			}
 
-		longPressTriggeredRef.current = false;
-		clearLongPress();
+			longPressTriggeredRef.current = false;
+			clearLongPress();
 
-		longPressTimerRef.current = window.setTimeout(() => {
-			longPressTriggeredRef.current = true;
-			haptic(12);
-			onEnterSelectMode();
-		}, 520);
-	}, [clearLongPress, isEditing, isSelecting, onEnterSelectMode, haptic]);
+			longPressTimerRef.current = window.setTimeout(() => {
+				longPressTriggeredRef.current = true;
+				haptic(12);
+				onEnterSelectMode();
+			}, 520);
+		},
+		[clearLongPress, isEditing, isSelecting, onEnterSelectMode, haptic]
+	);
 
 	const handlePointerUp = useCallback(() => {
 		clearLongPress();
@@ -184,7 +194,9 @@ export function QrCard({
 	return (
 		<div
 			className={`card bg-base-100 shadow-md p-4 flex flex-col items-center gap-3 relative select-none touch-manipulation ${
-				isSelecting && isSelected ? 'ring ring-primary ring-offset-2 ring-offset-base-100' : ''
+				isSelecting && isSelected
+					? 'ring ring-primary ring-offset-2 ring-offset-base-100'
+					: ''
 			}`}
 			onPointerDown={handlePointerDown}
 			onPointerUp={handlePointerUp}
@@ -193,8 +205,7 @@ export function QrCard({
 			onClick={handleCardClick}
 			role={isSelecting ? 'button' : undefined}
 			tabIndex={isSelecting ? 0 : undefined}
-			onContextMenu={(e) => e.preventDefault()}
-		>
+			onContextMenu={(e) => e.preventDefault()}>
 			<button
 				type='button'
 				className={`absolute top-3 left-3 z-10 ${
@@ -207,11 +218,10 @@ export function QrCard({
 					onToggleSelect();
 				}}
 				aria-label={isSelected ? 'Deselect QR' : 'Select QR'}
-				aria-hidden={!isSelecting}
-			>
+				aria-hidden={!isSelecting}>
 				<input
 					type='checkbox'
-					className='checkbox checkbox-primary'
+					className='checkbox checkbox-primary pointer-events-none'
 					checked={isSelected}
 					readOnly
 				/>
@@ -301,7 +311,6 @@ export function QrCard({
 								onDownloadJpg={onDownloadJpg}
 								onPrint={onPrint}
 								onShare={onShare}
-								onSelect={onEnterSelectMode}
 								createdAt={qr.createdAt}
 							/>
 						</div>

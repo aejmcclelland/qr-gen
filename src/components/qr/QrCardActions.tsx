@@ -16,7 +16,6 @@ type QrCardActionsProps = {
 	onDownloadJpg: () => void;
 	onPrint: () => void;
 	onShare?: () => void | Promise<void>;
-	onSelect?: () => void | Promise<void>;
 	createdAt?: string;
 };
 
@@ -29,7 +28,6 @@ export function QrCardActions({
 	onDownloadJpg,
 	onPrint,
 	onShare,
-	onSelect,
 	createdAt,
 }: QrCardActionsProps) {
 	return (
@@ -46,17 +44,18 @@ export function QrCardActions({
 			<DropdownMenuContent
 				align='end'
 				className='w-44 rounded-md bg-neutral text-neutral-content shadow-lg p-2'>
-				<DropdownMenuItem onClick={onDownloadPng}>Download PNG</DropdownMenuItem>
-				<DropdownMenuItem onClick={onDownloadJpg}>Download JPG</DropdownMenuItem>
+				<DropdownMenuItem onClick={onDownloadPng}>
+					Download PNG
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={onDownloadJpg}>
+					Download JPG
+				</DropdownMenuItem>
 				<DropdownMenuItem onClick={onPrint}>Print</DropdownMenuItem>
 				{onShare ? (
 					<DropdownMenuItem onClick={onShare}>Share</DropdownMenuItem>
 				) : null}
 				<DropdownMenuItem onClick={onVisit}>Visit link</DropdownMenuItem>
 				<DropdownMenuItem onClick={onCopy}>Copy URL</DropdownMenuItem>
-				{onSelect ? (
-					<DropdownMenuItem onClick={onSelect}>Select</DropdownMenuItem>
-				) : null}
 				<DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
 				<DropdownMenuItem className='text-error' onClick={onDelete}>
 					Delete
