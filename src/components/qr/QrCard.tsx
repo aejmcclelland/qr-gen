@@ -6,8 +6,9 @@ import {
 	useCallback,
 	useEffect,
 	useRef,
+	useState,
 } from 'react';
-import { toast } from 'react-toastify';
+import { Toast } from '@/components/ui/Toast';
 import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
 import { useQrExport } from '@/hooks/useQrExport';
@@ -93,6 +94,33 @@ export function QrCard({
 }: QrCardProps) {
 	const qrRenderRef = useRef<HTMLDivElement | null>(null);
 
+	const [toast, setToast] = useState<{
+		show: boolean;
+		message: string;
+		variant: 'info' | 'success' | 'warning' | 'error';
+	}>(
+		{
+			show: false,
+			message: '',
+			variant: 'info',
+		}
+	);
+
+	const showToast = useCallback(
+		(message: string, variant: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+			// Dedupe: if the same toast is already showing, don't stack/retrigger.
+			if (toast.show && toast.message === message && toast.variant === variant) return;
+
+			setToast({ show: true, message, variant });
+
+			// Auto-hide after 6s
+			window.setTimeout(() => {
+				setToast((prev) => (prev.message === message ? { ...prev, show: false } : prev));
+			}, 6000);
+		},
+		[toast.show, toast.message, toast.variant]
+	);
+
 	const { downloadPng, downloadJpg, print, share } = useQrExport({
 		rootRef: qrRenderRef,
 		label: qr.label,
@@ -123,9 +151,9 @@ export function QrCard({
 			const message =
 				err instanceof Error ? err.message : 'Print failed. Please try again.';
 			console.warn('[print]', message);
-			toast.info(message, { autoClose: 6000 });
+			showToast(message, 'info');
 		});
-	}, [print]);
+	}, [print, showToast]);
 
 	const onShare = useCallback(async () => {
 		try {
@@ -220,6 +248,12 @@ export function QrCard({
 			role={isSelecting ? 'button' : undefined}
 			tabIndex={isSelecting ? 0 : undefined}
 			onContextMenu={(e) => e.preventDefault()}>
+			<Toast
+				show={toast.show}
+				message={toast.message}
+				variant={toast.variant}
+				onClose={() => setToast((prev) => ({ ...prev, show: false }))}
+			/>
 			<button
 				type='button'
 				className={`absolute top-3 left-3 z-10 ${
