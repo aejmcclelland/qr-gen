@@ -42,13 +42,13 @@ export function BulkActionBar({
 	return (
 		<div
 			className={
-				'fixed left-1/2 bottom-32 z-50 -translate-x-1/2 pointer-events-none ' +
+				'fixed left-1/2 bottom-12 z-50 -translate-x-1/2 pointer-events-none ' +
 				'transition-all duration-200 ease-out ' +
 				(mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4')
 			}
 			aria-live='polite'>
 			<div className='pointer-events-auto'>
-				<div className='card bg-base-100 shadow-xl border border-base-200'>
+				<div className='card bg-base-100/60 shadow-xl border border-base-200'>
 					<div className='card-body py-3 px-4'>
 						<div className='flex items-center gap-3 flex-wrap'>
 							{/* Status */}
