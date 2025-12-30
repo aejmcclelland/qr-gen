@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
 		if (ids.length < 2) {
 			return NextResponse.json(
 				{
-					error:
+					code: 'BULK_MIN_2',
+					message:
 						ids.length === 0
 							? 'No QR codes selected.'
 							: 'Bulk download requires 2 or more QR codes. Use the single download option from the QR menu.',

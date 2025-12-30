@@ -209,16 +209,6 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 	const bulkDownloadSelected = useCallback(async () => {
 		const ids = Array.from(selectedIds);
 
-		if (ids.length === 1) {
-			setToast({
-				show: true,
-				message:
-					'To download one QR, use the Download option on the QR card menu.',
-				variant: 'info',
-			});
-			return;
-		}
-
 		setIsBulkDownloading(true);
 
 		try {
@@ -228,9 +218,20 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 				body: JSON.stringify({ ids }),
 			});
 
+			const data = await res.json().catch(() => null);
+
 			if (!res.ok) {
-				const msg = await res.text().catch(() => '');
-				throw new Error(msg || 'Download failed');
+				// ✅ Machine-readable handling
+				if (data?.code === 'BULK_MIN_2') {
+					setToast({
+						show: true,
+						message: data.message,
+						variant: 'info',
+					});
+					return;
+				}
+
+				throw new Error(data?.message || 'Download failed');
 			}
 
 			const blob = await res.blob();
@@ -238,9 +239,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 
 			const a = document.createElement('a');
 			a.href = url;
-
-			// If >1, it'll be ZIP. If 1, it'll be PNG.
-			a.download = ids.length > 1 ? 'qrvault-qrs.zip' : 'qr.png';
+			a.download = 'qrvault-qrs.zip';
 
 			document.body.appendChild(a);
 			a.click();
@@ -250,8 +249,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 
 			setToast({
 				show: true,
-				message:
-					ids.length === 1 ? 'QR downloaded.' : `${ids.length} QRs downloaded.`,
+				message: `${ids.length} QRs downloaded.`,
 				variant: 'success',
 			});
 		} catch (err) {
@@ -266,6 +264,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 			setIsBulkDownloading(false);
 		}
 	}, [selectedIds]);
+
 	const handleEditSubmit = async (
 		e: FormEvent<HTMLFormElement>,
 		id: string
@@ -320,39 +319,6 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 			</div>
 		);
 	}
-
-	// const bulkDownloadSelected = useCallback(async () => {
-	// 	if (selectedIds.size === 0) return;
-
-	// 	setIsBulkDownloading(true);
-
-	// 	try {
-	// 		// TEMP / MVP behaviour:
-	// 		// For now just trigger per-QR downloads
-	// 		for (const id of selectedIds) {
-	// 			const qr = qrs.find((q) => q.id === id);
-	// 			if (!qr) continue;
-
-	// 			// reuse existing single-download logic later
-	// 			window.open(`/api/qrs/${id}/download`, '_blank');
-	// 		}
-
-	// 		setToast({
-	// 			show: true,
-	// 			message: `${selectedIds.size} QR codes downloading…`,
-	// 			variant: 'success',
-	// 		});
-	// 	} catch (err) {
-	// 		console.error(err);
-	// 		setToast({
-	// 			show: true,
-	// 			message: 'Failed to download QR codes.',
-	// 			variant: 'error',
-	// 		});
-	// 	} finally {
-	// 		setIsBulkDownloading(false);
-	// 	}
-	// }, [selectedIds, qrs]);
 
 	return (
 		<>
