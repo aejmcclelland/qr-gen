@@ -21,6 +21,11 @@ export async function generateMetadata({
 		openGraph: {
 			title: qr?.label ?? 'QR Code',
 		},
+		// Optional: avoid search engines indexing random public QR pages
+		robots: {
+			index: false,
+			follow: false,
+		},
 	};
 }
 
@@ -39,28 +44,42 @@ export default async function PublicQrPage({
 	if (!qr) notFound();
 
 	return (
-		<main className='min-h-screen bg-base-200 mt-16 px-10 py-10'>
+		<main className='min-h-screen bg-base-200 mt-16 pt-12 px-12 pb-10 sm:px-6'>
 			<div className='mx-auto w-full max-w-md'>
 				<div className='card bg-base-100 shadow-xl'>
 					<div className='card-body items-center gap-4'>
-						<QRCode
-							className='size-56 sm:size-64 rounded-lg border bg-white p-4 shadow-xs'
-							data={qr.targetUrl}
-							foreground='#111'
-						/>
+						{/* Tiny header */}
+						<div className='text-center space-y-1'>
+							<p className='text-[11px] uppercase tracking-widest text-base-content/60'>
+								QR Vault
+							</p>
+							<p className='text-lg font-semibold leading-tight'>
+								{qr.label ?? 'QR Code'}
+							</p>
+						</div>
 
-						{qr.label ? (
-							<h1 className='text-center text-lg font-semibold'>{qr.label}</h1>
-						) : null}
+						{/* Wrap QR in a stable element so the client can export it */}
+						<div id='public-qr-root' className='rounded-lg'>
+							<QRCode
+								className='size-56 sm:size-64 rounded-lg border bg-white p-4 shadow-xs'
+								data={qr.targetUrl}
+								foreground='#111'
+							/>
+						</div>
 
 						<p className='text-center text-sm text-base-content/70 break-all'>
 							{qr.targetUrl}
 						</p>
 
-						{/* Client component: visit + copy with toast */}
-						<PublicShareActions targetUrl={qr.targetUrl} />
+						{/* Client actions: visit + copy + download PNG */}
+						<PublicShareActions
+							targetUrl={qr.targetUrl}
+							qrRootId='public-qr-root'
+							label={qr.label ?? null}
+						/>
 					</div>
 				</div>
+
 				<div className='text-center text-sm text-base-content/70 mt-4'>
 					Generated with{' '}
 					<a

@@ -1,58 +1,92 @@
+// src/components/qr/PublicShareActions.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { buttonVariants } from '@/components/ui/button';
+import { useState } from 'react';
 import { Toast } from '@/components/ui/Toast';
+import Link from 'next/link';
+import { ExternalLink, Copy, Link2, ImageDown } from 'lucide-react';
+import {
+	resolveQrCanvasFromElement,
+	downloadCanvasAsPng,
+} from '@/lib/qrExport';
 
 type Props = {
 	targetUrl: string;
+	qrRootId?: string;
+	label?: string | null;
 };
 
-export default function PublicShareActions({ targetUrl }: Props) {
+export default function PublicShareActions({
+	targetUrl,
+	qrRootId,
+	label,
+}: Props) {
 	const [toast, setToast] = useState({
 		show: false,
 		message: '',
 		variant: 'info' as 'info' | 'success' | 'error' | 'warning',
 	});
 
-	const [canNativeShare, setCanNativeShare] = useState(false);
+	const filenameBase =
+		(label ?? 'qr-code')
+			.trim()
+			.toLowerCase()
+			.replace(/\s+/g, '-')
+			.replace(/[^a-z0-9-_]/g, '')
+			.slice(0, 40) || 'qr-code';
 
-	useEffect(() => {
-		setCanNativeShare(
-			typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-		);
-	}, []);
-
-	const copyLink = () => {
-		navigator.clipboard.writeText(window.location.href);
-		setToast({
-			show: true,
-			message: 'Link copied to clipboard.',
-			variant: 'success',
-		});
+	const copyDestination = async () => {
+		try {
+			await navigator.clipboard.writeText(targetUrl);
+			setToast({
+				show: true,
+				message: 'Destination URL copied!',
+				variant: 'success',
+			});
+		} catch {
+			setToast({
+				show: true,
+				message: 'Could not copy destination URL.',
+				variant: 'error',
+			});
+		}
 	};
 
-	const shareLink = async () => {
-		if (!canNativeShare) {
-			setToast({
-				show: true,
-				message: 'Sharing isn\'t supported on this device. You can copy the link instead.',
-				variant: 'info',
-			});
-			return;
-		}
-
+	const copyQrPageLink = async () => {
 		try {
-			await navigator.share({
-				title: 'QR Vault',
-				url: window.location.href,
-			});
-		} catch (err: any) {
-			if (err?.name === 'AbortError') return;
+			await navigator.clipboard.writeText(window.location.href);
 			setToast({
 				show: true,
-				message: 'Unable to open share options on this device.',
-				variant: 'warning',
+				message: 'QR page link copied!',
+				variant: 'success',
+			});
+		} catch {
+			setToast({
+				show: true,
+				message: 'Could not copy QR page link.',
+				variant: 'error',
+			});
+		}
+	};
+
+	const downloadPng = async () => {
+		try {
+			if (!qrRootId) return;
+			const el = document.getElementById(qrRootId);
+			if (!el) throw new Error('QR not available');
+
+			const canvas = await resolveQrCanvasFromElement(el, {
+				size: 1024,
+				background: '#FFFFFF',
+			});
+			downloadCanvasAsPng(canvas, filenameBase);
+
+			setToast({ show: true, message: 'PNG downloaded!', variant: 'success' });
+		} catch {
+			setToast({
+				show: true,
+				message: 'Could not download PNG.',
+				variant: 'error',
 			});
 		}
 	};
@@ -67,44 +101,45 @@ export default function PublicShareActions({ targetUrl }: Props) {
 				onClose={() => setToast((prev) => ({ ...prev, show: false }))}
 			/>
 
-			<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
-				{/* Visit link */}
-				<a
+			<div className='flex flex-wrap items-center justify-center gap-3 w-full'>
+				<Link
 					href={targetUrl}
 					target='_blank'
 					rel='noopener noreferrer'
-					className={buttonVariants({
-						size: 'sm',
-						className: 'w-full sm:w-auto',
-					})}>
-					Visit link
-				</a>
+					aria-label='Visit destination'
+					title='Visit destination'
+					className='btn btn-circle btn-outline'>
+					<ExternalLink className='h-4 w-4' />
+				</Link>
 
-				{/* Share (native share sheet where supported) */}
-				{canNativeShare ? (
-					<button
-						type='button'
-						className={buttonVariants({
-							size: 'sm',
-							variant: 'secondary',
-							className: 'w-full sm:w-auto',
-						})}
-						onClick={shareLink}>
-						Share
-					</button>
-				) : null}
-
-				{/* Copy share link */}
 				<button
 					type='button'
-					className={buttonVariants({
-						size: 'sm',
-						variant: 'outline',
-						className: 'w-full sm:w-auto',
-					})}
-					onClick={copyLink}>
-					Copy share link
+					aria-label='Copy destination URL'
+					title='Copy destination URL'
+					className='btn btn-circle btn-outline'
+					onClick={copyDestination}>
+					<Copy className='h-4 w-4' />
 				</button>
+
+				<button
+					type='button'
+					aria-label='Copy QR page link'
+					title='Copy QR page link'
+					className='btn btn-circle btn-outline'
+					onClick={copyQrPageLink}>
+					<Link2 className='h-4 w-4' />
+				</button>
+
+				{qrRootId ? (
+					<button
+						type='button'
+						aria-label='Download PNG'
+						title='Download PNG'
+						className='btn btn-circle btn-primary'
+						onClick={downloadPng}>
+						<ImageDown className='h-4 w-4' />
+					</button>
+				) : null}
 			</div>
 		</>
 	);
