@@ -15,7 +15,9 @@ type QrCardActionsProps = {
 	onDownloadPng: () => void;
 	onDownloadJpg: () => void;
 	onPrint: () => void;
-	onShare?: () => void | Promise<void>;
+	// Public share page (/q/[id])
+	onOpenPublic?: () => void;
+	onCopyPublic?: () => void;
 	createdAt?: string;
 	showPrint?: boolean;
 };
@@ -28,7 +30,8 @@ export function QrCardActions({
 	onDownloadPng,
 	onDownloadJpg,
 	onPrint,
-	onShare,
+	onOpenPublic,
+	onCopyPublic,
 	createdAt,
 	showPrint = true,
 }: QrCardActionsProps) {
@@ -46,23 +49,30 @@ export function QrCardActions({
 			<DropdownMenuContent
 				align='end'
 				className='w-44 rounded-md bg-neutral text-neutral-content shadow-lg p-2'>
-				<DropdownMenuItem onClick={onDownloadPng}>
-					Download PNG
-				</DropdownMenuItem>
-				<DropdownMenuItem onClick={onDownloadJpg}>
-					Download JPG
-				</DropdownMenuItem>
-				{showPrint && (
-					<DropdownMenuItem onClick={onPrint}>
-						Print
-					</DropdownMenuItem>
-				)}
-				{onShare ? (
-					<DropdownMenuItem onClick={onShare}>Share</DropdownMenuItem>
+				<h3 className='text-primary'>Open</h3>
+				<DropdownMenuItem onClick={onVisit}>Open destination</DropdownMenuItem>
+				{onOpenPublic ? (
+					<DropdownMenuItem onClick={onOpenPublic}>Open QR page</DropdownMenuItem>
 				) : null}
-				<DropdownMenuItem onClick={onVisit}>Visit link</DropdownMenuItem>
-				<DropdownMenuItem onClick={onCopy}>Copy URL</DropdownMenuItem>
+
+				<div className='dropdown-divider' />
+				<h3 className='text-primary'>Copy</h3>
+				<DropdownMenuItem onClick={onCopy}>Copy destination URL</DropdownMenuItem>
+				{onCopyPublic ? (
+					<DropdownMenuItem onClick={onCopyPublic}>Copy QR page link</DropdownMenuItem>
+				) : null}
+
+				<div className='dropdown-divider' />
+				<h3 className='text-primary'>Download</h3>
+				<DropdownMenuItem onClick={onDownloadPng}>Download PNG</DropdownMenuItem>
+				<DropdownMenuItem onClick={onDownloadJpg}>Download JPG</DropdownMenuItem>
+				{showPrint && <DropdownMenuItem onClick={onPrint}>Print</DropdownMenuItem>}
+
+				<div className='dropdown-divider' />
+				<h3 className='text-primary'>Manage</h3>
 				<DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+
+				<div className='dropdown-divider' />
 				<DropdownMenuItem className='text-error' onClick={onDelete}>
 					Delete
 				</DropdownMenuItem>

@@ -7,6 +7,36 @@ import ConfirmDeleteModal from '@/components/qr/ConfirmDeleteModal';
 import { BulkActionBar } from '@/components/qr/BulkActionBar';
 import { CheckSquare } from 'lucide-react';
 
+async function readErrorPayload(res: Response): Promise<{ code?: string; message: string }> {
+	const contentType = res.headers.get('content-type') || '';
+
+	// Prefer machine-readable JSON when available
+	if (contentType.includes('application/json')) {
+		try {
+			const data = (await res.json()) as any;
+			return {
+				code: typeof data?.code === 'string' ? data.code : undefined,
+				message:
+					typeof data?.message === 'string'
+						? data.message
+						: typeof data?.error === 'string'
+							? data.error
+							: `Request failed (${res.status})`,
+			};
+		} catch {
+			return { message: `Request failed (${res.status})` };
+		}
+	}
+
+	// Fallback to text for non-JSON errors
+	try {
+		const text = await res.text();
+		return { message: text || `Request failed (${res.status})` };
+	} catch {
+		return { message: `Request failed (${res.status})` };
+	}
+}
+
 type Qr = {
 	id: string;
 	targetUrl: string;
@@ -209,6 +239,19 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 	const bulkDownloadSelected = useCallback(async () => {
 		const ids = Array.from(selectedIds);
 
+		// Client-side guard: this endpoint is ZIP-only (2+)
+		if (ids.length < 2) {
+			setToast({
+				show: true,
+				message:
+					ids.length === 0
+						? 'Select at least two QR codes to download as a ZIP.'
+						: 'To download one QR, use the Download option on the QR card menu.',
+				variant: 'info',
+			});
+			return;
+		}
+
 		setIsBulkDownloading(true);
 
 		try {
@@ -218,22 +261,23 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 				body: JSON.stringify({ ids }),
 			});
 
-			const data = await res.json().catch(() => null);
-
 			if (!res.ok) {
-				//  Machine-readable handling
-				if (data?.code === 'BULK_MIN_2') {
+				const err = await readErrorPayload(res);
+
+				// Machine-readable handling
+				if (err.code === 'BULK_MIN_2') {
 					setToast({
 						show: true,
-						message: data.message,
+						message: err.message,
 						variant: 'info',
 					});
 					return;
 				}
 
-				throw new Error(data?.message || 'Download failed');
+				throw new Error(err.message || 'Download failed');
 			}
 
+			// Success path: ONLY read the body as a blob (do not call res.json() first)
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
 

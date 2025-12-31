@@ -14,6 +14,10 @@ type Body = {
 	ids: string[];
 };
 
+function jsonError(status: number, code: string, message: string) {
+  return NextResponse.json({ code, message }, { status });
+}
+
 function safeFilename(input: string) {
 	return input
 		.toLowerCase()
@@ -30,22 +34,25 @@ export async function POST(req: NextRequest) {
 		const session = sessionResult?.session;
 
 		if (!session) {
-			return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+			return jsonError(401, 'UNAUTHORISED', 'You must be logged in to download QR codes.');
 		}
 
-		const body = (await req.json()) as Body;
+		let body: Body | null = null;
+		try {
+			body = (await req.json()) as Body;
+		} catch {
+			return jsonError(400, 'BAD_BODY', 'Invalid request body.');
+		}
+
 		const ids = Array.isArray(body?.ids) ? body.ids.filter(Boolean) : [];
 
 		if (ids.length < 2) {
-			return NextResponse.json(
-				{
-					code: 'BULK_MIN_2',
-					message:
-						ids.length === 0
-							? 'No QR codes selected.'
-							: 'Bulk download requires 2 or more QR codes. Use the single download option from the QR menu.',
-				},
-				{ status: 400 }
+			return jsonError(
+				400,
+				'BULK_MIN_2',
+				ids.length === 0
+					? 'No QR codes selected.'
+					: 'Bulk download requires 2 or more QR codes. Use the single download option from the QR menu.'
 			);
 		}
 		// Fetch only QRs belonging to this user
@@ -63,7 +70,7 @@ export async function POST(req: NextRequest) {
 		});
 
 		if (qrs.length === 0) {
-			return NextResponse.json({ error: 'Not found' }, { status: 404 });
+			return jsonError(404, 'NOT_FOUND', 'No matching QR codes were found.');
 		}
 
 		// If someone passed ids they don't own, just return what they do own.
@@ -72,6 +79,8 @@ export async function POST(req: NextRequest) {
 		// ZIP response
 		const zip = new JSZip();
 
+		const usedNames = new Map<string, number>();
+
 		for (const qr of qrs) {
 			const pngBuffer = await QRCode.toBuffer(qr.targetUrl, {
 				type: 'png',
@@ -79,10 +88,12 @@ export async function POST(req: NextRequest) {
 				margin: 2,
 			});
 
-			const base =
-				safeFilename(qr.label ?? '') || safeFilename(qr.targetUrl) || qr.id;
+			const rawBase = safeFilename(qr.label ?? '') || safeFilename(qr.targetUrl) || qr.id;
+			const count = (usedNames.get(rawBase) ?? 0) + 1;
+			usedNames.set(rawBase, count);
+			const filename = count === 1 ? `${rawBase}.png` : `${rawBase}-${count}.png`;
 
-			zip.file(`${base || qr.id}.png`, pngBuffer);
+			zip.file(filename, pngBuffer);
 		}
 
 		const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
@@ -98,9 +109,6 @@ export async function POST(req: NextRequest) {
 		});
 	} catch (error) {
 		console.error('Bulk download error', error);
-		return NextResponse.json(
-			{ error: 'Internal server error' },
-			{ status: 500 }
-		);
+		return jsonError(500, 'INTERNAL_ERROR', 'Internal server error');
 	}
 }

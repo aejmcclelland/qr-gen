@@ -125,7 +125,7 @@ export function QrCard({
 		[toast.show, toast.message, toast.variant]
 	);
 
-	const { downloadPng, downloadJpg, print, share } = useQrExport({
+	const { downloadPng, downloadJpg, print } = useQrExport({
 		rootRef: qrRenderRef,
 		label: qr.label,
 		id: qr.id,
@@ -158,18 +158,6 @@ export function QrCard({
 			showToast(message, 'info');
 		});
 	}, [print, showToast]);
-
-	const onShare = useCallback(async () => {
-		try {
-			const result = await share();
-			if (result && result.shared === false && result.fallback === 'copy-url') {
-				// Fallback: copy URL (and let the parent show toast via onCopy)
-				onCopy();
-			}
-		} catch (err) {
-			console.error(err);
-		}
-	}, [share, onCopy]);
 
 	const longPressTimerRef = useRef<number | null>(null);
 	const longPressTriggeredRef = useRef(false);
@@ -362,9 +350,11 @@ export function QrCard({
 								onDownloadPng={onDownloadPng}
 								onDownloadJpg={onDownloadJpg}
 								onPrint={onPrint}
-								onShare={onShare}
 								createdAt={qr.createdAt}
 								showPrint={!isIosSafari()}
+								onOpenPublic={() =>
+									window.open(`/q/${qr.id}`, '_blank', 'noopener,noreferrer')
+								}
 							/>
 						</div>
 					) : null}
