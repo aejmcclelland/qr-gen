@@ -10,14 +10,9 @@ import {
 type QrCardActionsProps = {
 	onEdit: () => void;
 	onDelete: () => void;
-	onVisit: () => void;
-	onCopy: () => void;
 	onDownloadPng: () => void;
 	onDownloadJpg: () => void;
 	onPrint: () => void;
-	// Public share page (/q/[id])
-	onOpenPublic?: () => void;
-	onCopyPublic?: () => void;
 	createdAt?: string;
 	showPrint?: boolean;
 };
@@ -25,13 +20,9 @@ type QrCardActionsProps = {
 export function QrCardActions({
 	onEdit,
 	onDelete,
-	onVisit,
-	onCopy,
 	onDownloadPng,
 	onDownloadJpg,
 	onPrint,
-	onOpenPublic,
-	onCopyPublic,
 	createdAt,
 	showPrint = true,
 }: QrCardActionsProps) {
@@ -49,40 +40,39 @@ export function QrCardActions({
 			<DropdownMenuContent
 				align='end'
 				className='w-44 rounded-md bg-neutral text-neutral-content shadow-lg p-2'>
-				<h3 className='text-primary'>Open</h3>
-				<DropdownMenuItem onClick={onVisit}>Open destination</DropdownMenuItem>
-				{onOpenPublic ? (
-					<DropdownMenuItem onClick={onOpenPublic}>Open QR page</DropdownMenuItem>
+				<div className='px-2 pb-1 text-[11px] font-semibold text-primary'>
+					Download
+				</div>
+				<DropdownMenuItem onClick={onDownloadPng}>
+					Download PNG
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={onDownloadJpg}>
+					Download JPG
+				</DropdownMenuItem>
+				{showPrint ? (
+					<DropdownMenuItem onClick={onPrint}>Print</DropdownMenuItem>
 				) : null}
 
-				<div className='dropdown-divider' />
-				<h3 className='text-primary'>Copy</h3>
-				<DropdownMenuItem onClick={onCopy}>Copy destination URL</DropdownMenuItem>
-				{onCopyPublic ? (
-					<DropdownMenuItem onClick={onCopyPublic}>Copy QR page link</DropdownMenuItem>
-				) : null}
+				<div className='my-2 h-px bg-base-100/10' />
 
-				<div className='dropdown-divider' />
-				<h3 className='text-primary'>Download</h3>
-				<DropdownMenuItem onClick={onDownloadPng}>Download PNG</DropdownMenuItem>
-				<DropdownMenuItem onClick={onDownloadJpg}>Download JPG</DropdownMenuItem>
-				{showPrint && <DropdownMenuItem onClick={onPrint}>Print</DropdownMenuItem>}
-
-				<div className='dropdown-divider' />
-				<h3 className='text-primary'>Manage</h3>
+				<div className='px-2 pb-1 text-[11px] font-semibold text-primary'>
+					Manage
+				</div>
 				<DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
 
-				<div className='dropdown-divider' />
+				<div className='my-2 h-px bg-base-100/10' />
+
 				<DropdownMenuItem className='text-error' onClick={onDelete}>
 					Delete
 				</DropdownMenuItem>
-				{createdAt && (
+
+				{createdAt ? (
 					<DropdownMenuItem
 						disabled
-						className='text-[10px] opacity-20 cursor-default'>
+						className='text-[10px] opacity-30 cursor-default'>
 						Added: {new Date(createdAt).toLocaleDateString('en-GB')}
 					</DropdownMenuItem>
-				)}
+				) : null}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

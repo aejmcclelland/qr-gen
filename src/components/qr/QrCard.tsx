@@ -12,6 +12,7 @@ import { Toast } from '@/components/ui/Toast';
 import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
 import { useQrExport } from '@/hooks/useQrExport';
+import { Copy, ExternalLink, Share } from 'lucide-react';
 
 type Qr = {
 	id: string;
@@ -89,8 +90,8 @@ export function QrCard({
 	onChangeCategory,
 	onSubmitEdit,
 	onDelete,
-	onVisit,
-	onCopy,
+	onVisit: _onVisit,
+	onCopy: _onCopy,
 }: QrCardProps) {
 	const qrRenderRef = useRef<HTMLDivElement | null>(null);
 
@@ -158,6 +159,40 @@ export function QrCard({
 			showToast(message, 'info');
 		});
 	}, [print, showToast]);
+
+	const onQuickOpen = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+			window.open(qr.targetUrl, '_blank', 'noopener,noreferrer');
+		},
+		[qr.targetUrl]
+	);
+
+	const onQuickCopy = useCallback(
+		async (e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+			try {
+				await navigator.clipboard.writeText(qr.targetUrl);
+				showToast('Destination URL copied.', 'success');
+			} catch {
+				showToast('Could not copy the URL. Please try again.', 'error');
+			}
+		},
+		[qr.targetUrl, showToast]
+	);
+
+	const onQuickOpenQrPage = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+
+			// Open the public QR page (share page) in a new tab
+			window.open(`/q/${qr.id}`, '_blank', 'noopener,noreferrer');
+		},
+		[qr.id]
+	);
 
 	const longPressTimerRef = useRef<number | null>(null);
 	const longPressTriggeredRef = useRef(false);
@@ -246,6 +281,7 @@ export function QrCard({
 				variant={toast.variant}
 				onClose={() => setToast((prev) => ({ ...prev, show: false }))}
 			/>
+
 			<button
 				type='button'
 				className={`absolute top-3 left-3 z-10 ${
@@ -266,6 +302,7 @@ export function QrCard({
 					readOnly
 				/>
 			</button>
+
 			<div className='p-2 bg-base-200 rounded-xl' ref={qrRenderRef}>
 				<ClientQRCode
 					data={qr.targetUrl}
@@ -307,6 +344,7 @@ export function QrCard({
 								))}
 						</select>
 					</div>
+
 					<div className='form-control w-full'>
 						<label className='label'>
 							<span className='label-text'>Target URL</span>
@@ -341,20 +379,39 @@ export function QrCard({
 			) : (
 				<>
 					{!isSelecting ? (
-						<div className='w-full flex justify-end'>
+						<div className='w-full flex items-center justify-end gap-1'>
+							<button
+								type='button'
+								className='btn btn-ghost btn-xs btn-circle'
+								onClick={onQuickOpen}
+								aria-label='Open destination'>
+								<ExternalLink className='h-4 w-4' />
+							</button>
+
+							<button
+								type='button'
+								className='btn btn-ghost btn-xs btn-circle'
+								onClick={onQuickCopy}
+								aria-label='Copy destination URL'>
+								<Copy className='h-4 w-4' />
+							</button>
+
+							<button
+								type='button'
+								className='btn btn-ghost btn-xs btn-circle'
+								onClick={onQuickOpenQrPage}
+								aria-label='Open QR page'>
+								<Share className='h-4 w-4' />
+							</button>
+
 							<QrCardActions
 								onEdit={onStartEdit}
 								onDelete={onDelete}
-								onVisit={onVisit}
-								onCopy={onCopy}
 								onDownloadPng={onDownloadPng}
 								onDownloadJpg={onDownloadJpg}
 								onPrint={onPrint}
 								createdAt={qr.createdAt}
 								showPrint={!isIosSafari()}
-								onOpenPublic={() =>
-									window.open(`/q/${qr.id}`, '_blank', 'noopener,noreferrer')
-								}
 							/>
 						</div>
 					) : null}
