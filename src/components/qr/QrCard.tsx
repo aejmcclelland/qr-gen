@@ -98,24 +98,28 @@ export function QrCard({
 		show: boolean;
 		message: string;
 		variant: 'info' | 'success' | 'warning' | 'error';
-	}>(
-		{
-			show: false,
-			message: '',
-			variant: 'info',
-		}
-	);
+	}>({
+		show: false,
+		message: '',
+		variant: 'info',
+	});
 
 	const showToast = useCallback(
-		(message: string, variant: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+		(
+			message: string,
+			variant: 'info' | 'success' | 'warning' | 'error' = 'info'
+		) => {
 			// Dedupe: if the same toast is already showing, don't stack/retrigger.
-			if (toast.show && toast.message === message && toast.variant === variant) return;
+			if (toast.show && toast.message === message && toast.variant === variant)
+				return;
 
 			setToast({ show: true, message, variant });
 
 			// Auto-hide after 6s
 			window.setTimeout(() => {
-				setToast((prev) => (prev.message === message ? { ...prev, show: false } : prev));
+				setToast((prev) =>
+					prev.message === message ? { ...prev, show: false } : prev
+				);
 			}, 6000);
 		},
 		[toast.show, toast.message, toast.variant]
@@ -360,7 +364,7 @@ export function QrCard({
 								onPrint={onPrint}
 								onShare={onShare}
 								createdAt={qr.createdAt}
-								isPrintDisabled={isIosSafari()}
+								showPrint={isIosSafari()}
 							/>
 						</div>
 					) : null}
