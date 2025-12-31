@@ -364,7 +364,7 @@ export function QrCard({
 								onPrint={onPrint}
 								onShare={onShare}
 								createdAt={qr.createdAt}
-								showPrint={isIosSafari()}
+								showPrint={!isIosSafari()}
 							/>
 						</div>
 					) : null}
