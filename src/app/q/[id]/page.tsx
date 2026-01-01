@@ -4,6 +4,10 @@ import { notFound } from 'next/navigation';
 import { QRCode } from '@/components/ui/shadcn-io/qr-code';
 import PublicShareActions from '@/components/qr/PublicShareActions';
 
+// Ensure public QR pages always reflect the latest DB state (e.g., isPublic toggles)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function generateMetadata({
 	params,
 }: {
@@ -13,13 +17,21 @@ export async function generateMetadata({
 
 	const qr = await prisma.qrcodes.findUnique({
 		where: { id },
-		select: { label: true },
+		select: { label: true, isPublic: true },
 	});
 
+	if (!qr || !qr.isPublic) {
+		return {
+			title: 'QR Code',
+			openGraph: { title: 'QR Code' },
+			robots: { index: false, follow: false },
+		};
+	}
+
 	return {
-		title: qr?.label ?? 'QR Code',
+		title: qr.label ?? 'QR Code',
 		openGraph: {
-			title: qr?.label ?? 'QR Code',
+			title: qr.label ?? 'QR Code',
 		},
 		// Optional: avoid search engines indexing random public QR pages
 		robots: {
@@ -38,13 +50,14 @@ export default async function PublicQrPage({
 
 	const qr = await prisma.qrcodes.findUnique({
 		where: { id },
-		select: { label: true, targetUrl: true },
+		select: { label: true, targetUrl: true, isPublic: true },
 	});
 
-	if (!qr) notFound();
-
+	if (!qr || !qr.isPublic) {
+		notFound();
+	}
 	return (
-		<main className='min-h-screen bg-base-200 mt-16 pt-12 px-12 pb-10 sm:px-6'>
+		<main className='min-h-screen bg-base-200 mt-16 pt-12 px-4 pb-10 sm:px-6'>
 			<div className='mx-auto w-full max-w-md'>
 				<div className='card bg-base-100 shadow-xl'>
 					<div className='card-body items-center gap-4'>

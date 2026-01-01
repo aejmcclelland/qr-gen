@@ -7,7 +7,9 @@ import ConfirmDeleteModal from '@/components/qr/ConfirmDeleteModal';
 import { BulkActionBar } from '@/components/qr/BulkActionBar';
 import { CheckSquare } from 'lucide-react';
 
-async function readErrorPayload(res: Response): Promise<{ code?: string; message: string }> {
+async function readErrorPayload(
+	res: Response
+): Promise<{ code?: string; message: string }> {
 	const contentType = res.headers.get('content-type') || '';
 
 	// Prefer machine-readable JSON when available
@@ -20,8 +22,8 @@ async function readErrorPayload(res: Response): Promise<{ code?: string; message
 					typeof data?.message === 'string'
 						? data.message
 						: typeof data?.error === 'string'
-							? data.error
-							: `Request failed (${res.status})`,
+						? data.error
+						: `Request failed (${res.status})`,
 			};
 		} catch {
 			return { message: `Request failed (${res.status})` };
@@ -43,6 +45,7 @@ type Qr = {
 	label: string | null;
 	category: string;
 	createdAt: string;
+	isPublic: boolean;
 };
 
 type Props = {
@@ -364,6 +367,40 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 		);
 	}
 
+	const togglePublic = async (id: string, next: boolean) => {
+		// optimistic update
+		setQrs((prev) =>
+			prev.map((q) => (q.id === id ? { ...q, isPublic: next } : q))
+		);
+
+		try {
+			const res = await fetch(`/api/qrs/${id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ isPublic: next }),
+			});
+
+			if (!res.ok) throw new Error('Failed to update visibility');
+
+			setToast({
+				show: true,
+				message: next ? 'Public QR page enabled.' : 'Public QR page disabled.',
+				variant: 'success',
+			});
+		} catch (e) {
+			// rollback if failed
+			setQrs((prev) =>
+				prev.map((q) => (q.id === id ? { ...q, isPublic: !next } : q))
+			);
+
+			setToast({
+				show: true,
+				message: 'Could not update visibility. Please try again.',
+				variant: 'error',
+			});
+		}
+	};
+
 	return (
 		<>
 			<Toast
@@ -378,7 +415,6 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 					}))
 				}
 			/>
-
 			<div className='flex items-center justify-between mb-3'>
 				<h2 className='text-lg font-semibold'>Your QR Codes</h2>
 				{!isSelecting ? (
@@ -391,6 +427,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 					</button>
 				) : null}
 			</div>
+
 			<div className='grid gap-6 sm:grid-cols-2 md:grid-cols-3 pb-24'>
 				{visibleQrs.map((qr) => (
 					<QrCard
@@ -406,6 +443,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 						onToggleSelect={() => toggleSelected(qr.id)}
 						onEnterSelectMode={() => startSelecting(qr.id)}
 						onStartEdit={() => startEdit(qr)}
+						onTogglePublic={togglePublic}
 						onCancelEdit={cancelEdit}
 						onChangeLabel={setEditLabel}
 						onChangeUrl={setEditUrl}

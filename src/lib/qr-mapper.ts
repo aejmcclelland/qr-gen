@@ -6,7 +6,8 @@ export type QrClient = {
 	targetUrl: string;
 	label: string | null;
 	category: string;
-	createdAt: string; // ISO string
+	createdAt: string; 
+	isPublic: boolean;
 };
 
 export function mapQrToClient(qr: qrcodes): QrClient {
@@ -16,6 +17,7 @@ export function mapQrToClient(qr: qrcodes): QrClient {
 		label: qr.label,
 		category: qr.category,
 		createdAt: qr.createdAt.toISOString(),
+		isPublic: qr.isPublic,
 	};
 }
 

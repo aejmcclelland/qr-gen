@@ -66,15 +66,17 @@ export async function PATCH(
 		}
 
 		const body = await req.json();
-		const { targetUrl, label, category } = body as {
+		const { targetUrl, label, category, isPublic } = body as {
 			targetUrl?: string;
 			label?: string;
 			category?: string;
+			isPublic?: boolean;
 		};
 
 		const updated = await prisma.qrcodes.update({
 			where: { id },
 			data: {
+				...(typeof isPublic === 'boolean' ? { isPublic } : {}),
 				...(targetUrl !== undefined && { targetUrl }),
 				...(label !== undefined && { label }),
 				...(category !== undefined && { category }),

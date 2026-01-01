@@ -13,6 +13,7 @@ import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
 import { useQrExport } from '@/hooks/useQrExport';
 import { Copy, ExternalLink, Share } from 'lucide-react';
+import { IsPublicToggle } from '@/components/qr/IsPublicToggle';
 
 type Qr = {
 	id: string;
@@ -20,6 +21,7 @@ type Qr = {
 	label: string | null;
 	category: string;
 	createdAt: string;
+	isPublic?: boolean;
 };
 
 function isIosSafari() {
@@ -70,6 +72,7 @@ type QrCardProps = {
 	onDelete: () => void;
 	onVisit: () => void;
 	onCopy: () => void;
+	onTogglePublic: (id: string, next: boolean) => void | Promise<void>;
 };
 
 export function QrCard({
@@ -90,6 +93,7 @@ export function QrCard({
 	onChangeCategory,
 	onSubmitEdit,
 	onDelete,
+	onTogglePublic,
 	onVisit: _onVisit,
 	onCopy: _onCopy,
 }: QrCardProps) {
@@ -188,10 +192,17 @@ export function QrCard({
 			e.preventDefault();
 			e.stopPropagation();
 
-			// Open the public QR page (share page) in a new tab
+			if (!qr.isPublic) {
+				showToast(
+					'This QR is private. Toggle Public to open the QR page.',
+					'info'
+				);
+				return;
+			}
+
 			window.open(`/q/${qr.id}`, '_blank', 'noopener,noreferrer');
 		},
-		[qr.id]
+		[qr.id, qr.isPublic, showToast]
 	);
 
 	const longPressTimerRef = useRef<number | null>(null);
@@ -415,7 +426,14 @@ export function QrCard({
 							/>
 						</div>
 					) : null}
-
+					<div className='flex items-start m-2 w-full'>
+						<IsPublicToggle
+							isPublic={qr.isPublic ?? false}
+							onToggle={(next) => onTogglePublic(qr.id, next)}
+							disabled={isSelecting || isEditing || savingEdit}
+							id={`is-public-toggle-${qr.id}`}
+						/>
+					</div>
 					<div className='text-center w-full'>
 						<p
 							className='font-medium text-sm wrap-break-word min-h-5'
