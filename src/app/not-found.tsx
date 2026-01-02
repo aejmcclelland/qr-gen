@@ -1,4 +1,4 @@
-// src/app/q/[id]/not-found.tsx
+// src/app/not-found.tsx
 import Link from 'next/link';
 
 export default function NotFound() {
@@ -7,9 +7,9 @@ export default function NotFound() {
 			<div className='w-full max-w-md'>
 				<div className='card bg-base-100 shadow-xl'>
 					<div className='card-body items-center text-center gap-3'>
-						<h1 className='text-lg font-semibold'>QR not available</h1>
+						<h1 className='text-lg font-semibold'>Page not found</h1>
 						<p className='text-sm text-base-content/70'>
-							This QR page is private or no longer available.
+							That link doesn’t exist or may have moved.
 						</p>
 
 						<div className='mt-2 flex flex-col gap-2 w-full'>
