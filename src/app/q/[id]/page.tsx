@@ -62,10 +62,7 @@ export default async function PublicQrPage({
 				<div className='card bg-base-100 shadow-xl'>
 					<div className='card-body items-center gap-4'>
 						{/* Tiny header */}
-						<div className='text-center space-y-1'>
-							<p className='text-[11px] uppercase tracking-widest text-base-content/60'>
-								QR Vault
-							</p>
+						<div className='text-center'>
 							<p className='text-lg font-semibold leading-tight'>
 								{qr.label ?? 'QR Code'}
 							</p>

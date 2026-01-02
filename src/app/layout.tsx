@@ -9,7 +9,7 @@ export default function DashboardLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang='en'>
+		<html lang='en' data-theme='dracula'>
 			<body>
 				<Navbar />
 				<main className='w-full overflow-x-hidden pt-12'>{children}</main>
