@@ -29,6 +29,7 @@ model User {
   image         String?
   avatarUrl           String?   // Cloudinary URL
   avatarUploadCount   Int       @default(0)
+  avatarPublicId String?
   lastAvatarUpdatedAt DateTime? // rate limiting
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

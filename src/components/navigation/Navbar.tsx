@@ -118,7 +118,7 @@ export function Navbar() {
 										{initials}
 									</div>
 									<span className='hidden sm:inline text-xs'>
-										{session.user.email ?? 'Account'}
+										{session.user.name ?? 'Account'}
 									</span>
 								</button>
 							</DropdownMenuTrigger>

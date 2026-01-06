@@ -1,23 +1,20 @@
 // src/app/api/qrs/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+import { getAuthedUserId } from '@/lib/getAuthedUserId';
 
 // GET /api/qrs - list QR codes for the current user
 export async function GET(req: NextRequest) {
 	try {
-		const sessionResult = await auth.api.getSession({
-			headers: req.headers,
-		});
+		const userId = await getAuthedUserId(req);
 
-		const session = sessionResult?.session;
-
-		if (!session) {
+		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 		}
 
 		const qrs = await prisma.qrcodes.findMany({
-			where: { userId: session.userId },
+			where: { userId },
 			orderBy: { createdAt: 'desc' },
 			take: 100,
 		});
@@ -35,13 +32,9 @@ export async function GET(req: NextRequest) {
 // POST /api/qrs - create a new QR code for the current user
 export async function POST(req: NextRequest) {
 	try {
-		const sessionResult = await auth.api.getSession({
-			headers: req.headers,
-		});
+		const userId = await getAuthedUserId(req);
 
-		const session = sessionResult?.session;
-
-		if (!session) {
+		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 		}
 
@@ -64,7 +57,7 @@ export async function POST(req: NextRequest) {
 		// Prevent duplicates for this user
 		const existing = await prisma.qrcodes.findFirst({
 			where: {
-				userId: session.userId,
+				userId,
 				targetUrl: normalizedTargetUrl,
 			},
 			select: {
@@ -93,7 +86,7 @@ export async function POST(req: NextRequest) {
 				targetUrl: normalizedTargetUrl,
 				label,
 				category: category ?? 'personal',
-				userId: session.userId,
+				userId,
 				createdAt: new Date(),
 			},
 		});

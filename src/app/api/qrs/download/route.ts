@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import JSZip from 'jszip';
 import QRCode from 'qrcode';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+import { getAuthedUserId } from '@/lib/getAuthedUserId';
 
 // Route segment config: this must be dynamic + node runtime
 export const dynamic = 'force-dynamic';
@@ -30,11 +30,14 @@ function safeFilename(input: string) {
 
 export async function POST(req: NextRequest) {
 	try {
-		const sessionResult = await auth.api.getSession({ headers: req.headers });
-		const session = sessionResult?.session;
+		const userId = await getAuthedUserId(req);
 
-		if (!session) {
-			return jsonError(401, 'UNAUTHORISED', 'You must be logged in to download QR codes.');
+		if (!userId) {
+			return jsonError(
+				401,
+				'UNAUTHORISED',
+				'You must be logged in to download QR codes.'
+			);
 		}
 
 		let body: Body | null = null;
@@ -59,7 +62,7 @@ export async function POST(req: NextRequest) {
 		const qrs = await prisma.qrcodes.findMany({
 			where: {
 				id: { in: ids },
-				userId: session.userId,
+				userId,
 			},
 			select: {
 				id: true,

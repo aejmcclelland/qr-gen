@@ -249,10 +249,13 @@ async function main() {
 	console.log('publicId type:', typeof publicId);
 
 	const browser = await chromium.launch();
-	const page = await browser.newPage({
+
+	// Desktop authenticated context
+	const desktopContext = await browser.newContext({
 		viewport: { width: 1440, height: 900 },
 		deviceScaleFactor: 2,
 	});
+	const page = await desktopContext.newPage();
 
 	page.on('console', (msg) => {
 		// Only print warnings/errors to keep output clean
@@ -266,6 +269,9 @@ async function main() {
 
 	await loginIfNeeded(page);
 
+	// Capture auth state so we can reuse it for mobile shots
+	const authState = await desktopContext.storageState();
+
 	const detailPath = await resolveFirstQrDetailPath(page);
 	if (!detailPath) {
 		console.log('[detail] Could not find a /q/:id link on the dashboard; falling back to the prisma-selected publicId');
@@ -273,11 +279,9 @@ async function main() {
 
 	const shots: Shot[] = [
 		{ name: '01-vault-dashboard', path: '/qr' },
-		{ name: '02-create-qr', path: '/qr/new' }, 
+		{ name: '02-create-qr', path: '/qr/new' },
 		{ name: '03-qr-detail', path: detailPath ?? `/q/${publicId}` },
-		{ name: '04-public-share-page', path: `/q/${publicId}` },
 		{ name: '05-profile', path: '/profile' },
-		{ name: '06-login', path: '/login' },
 	];
 
 	// Sanity check: if auth is working, /profile should not bounce us back to /login.
@@ -298,6 +302,38 @@ async function main() {
 		// eslint-disable-next-line no-console
 		console.log(`Saved ${s.name}.png`);
 	}
+
+	// Desktop public (logged-out) context for share page + login
+	const publicContext = await browser.newContext({
+		viewport: { width: 1440, height: 900 },
+		deviceScaleFactor: 2,
+	});
+	const publicPage = await publicContext.newPage();
+
+	await snap(publicPage, { name: '04-public-share-page', path: `/q/${publicId}` });
+	console.log('Saved 04-public-share-page.png');
+
+	await snap(publicPage, { name: '06-login', path: '/login' });
+	console.log('Saved 06-login.png');
+
+	// Mobile (authenticated) for create screen
+	const mobileAuthContext = await browser.newContext({
+		viewport: { width: 390, height: 844 },
+		deviceScaleFactor: 2,
+		storageState: authState,
+	});
+	const mobileAuthPage = await mobileAuthContext.newPage();
+	await snap(mobileAuthPage, { name: '07-mobile-create-qr', path: '/qr/new' });
+	console.log('Saved 07-mobile-create-qr.png');
+
+	// Mobile (public/logged-out) for share screen
+	const mobilePublicContext = await browser.newContext({
+		viewport: { width: 390, height: 844 },
+		deviceScaleFactor: 2,
+	});
+	const mobilePublicPage = await mobilePublicContext.newPage();
+	await snap(mobilePublicPage, { name: '08-mobile-public-share', path: `/q/${publicId}` });
+	console.log('Saved 08-mobile-public-share.png');
 
 	await browser.close();
 }

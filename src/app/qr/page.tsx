@@ -6,20 +6,18 @@ import { mapQrsToClient, type QrClient } from '@/lib/qr-mapper';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getSessionUserId } from '@/lib/getSessionUserId';
 
 export const dynamic = 'force-dynamic';
 
 export default async function QrListPage() {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user) redirect('/login?callbackURL=/qr');
 
-	if (!session?.user) {
-		redirect('/login?callbackURL=/qr');
-	}
+	const userId = getSessionUserId(session);
 
 	const dbQrs = await prisma.qrcodes.findMany({
-		where: { userId: session.user.id },
+		where: { userId },
 		orderBy: { createdAt: 'desc' },
 		take: 50,
 	});

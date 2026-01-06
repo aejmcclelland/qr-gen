@@ -1,6 +1,9 @@
+// src/app/api/qrs/[id]/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+import { getAuthedUserId } from '@/lib/getAuthedUserId';
+
 
 // GET /api/qrs/:id - fetch a single QR for the current user
 export async function GET(
@@ -10,18 +13,14 @@ export async function GET(
 	const { id } = await params;
 
 	try {
-		const sessionResult = await auth.api.getSession({
-			headers: req.headers,
-		});
+		const userId = await getAuthedUserId(req);
 
-		const session = sessionResult?.session;
-
-		if (!session) {
+		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 		}
 
 		const qr = await prisma.qrcodes.findFirst({
-			where: { id, userId: session.userId },
+			where: { id, userId },
 		});
 
 		if (!qr) {
@@ -46,19 +45,15 @@ export async function PATCH(
 	const { id } = await params;
 
 	try {
-		const sessionResult = await auth.api.getSession({
-			headers: req.headers,
-		});
+		const userId = await getAuthedUserId(req);
 
-		const session = sessionResult?.session;
-
-		if (!session) {
+		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 		}
 
 		// Ensure the QR belongs to this user
 		const existing = await prisma.qrcodes.findFirst({
-			where: { id, userId: session.userId },
+			where: { id, userId },
 		});
 
 		if (!existing) {
@@ -105,19 +100,15 @@ export async function DELETE(
 	const { id } = await params;
 
 	try {
-		const sessionResult = await auth.api.getSession({
-			headers: req.headers,
-		});
+		const userId = await getAuthedUserId(req);
 
-		const session = sessionResult?.session;
-
-		if (!session) {
+		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 		}
 
 		// Ensure the QR belongs to this user
 		const existing = await prisma.qrcodes.findFirst({
-			where: { id, userId: session.userId },
+			where: { id, userId },
 		});
 
 		if (!existing) {
