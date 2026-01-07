@@ -2,31 +2,36 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
-    # Provide a DIRECT_URL so Prisma's prisma.config.ts can load in CI.
-    # This does NOT need to be a real DB connection unless your tests require it.
+    # Dummy value so prisma.config.ts can load during install/generate.
+    # This does NOT connect to Supabase.
     env:
-      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      DIRECT_URL: postgresql://user:pass@localhost:5432/postgres
+      DATABASE_URL: postgresql://user:pass@localhost:5432/postgres
+      # Optional: avoid prisma postinstall generate if you don't need it in CI
+      PRISMA_SKIP_POSTINSTALL_GENERATE: "true"
 
     steps:
       - uses: actions/checkout@v4
 
+      # Install pnpm properly (adds it to PATH)
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # Node + pnpm cache
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: pnpm
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -34,11 +39,14 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
+      # Force HTML report output so playwright-report/ exists
       - name: Run Playwright tests
-        run: pnpm exec playwright test
+        run: pnpm exec playwright test --reporter=html
 
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
+      # Upload report even if tests fail
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
