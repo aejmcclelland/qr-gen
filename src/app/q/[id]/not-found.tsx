@@ -17,18 +17,18 @@ export default function NotFound() {
 								Back to QR Vault
 							</Link>
 							<a
-								href='https://qrvault.one'
+								href='https://qrpilot.app'
 								target='_blank'
 								rel='noopener noreferrer'
 								className='text-xs text-base-content/60 hover:text-base-content hover:underline text-center'>
-								Learn more at QRVault.one
+								Learn more at QrPilot.app
 							</a>
 						</div>
 					</div>
 				</div>
 
 				<p className='text-center text-xs text-base-content/50 mt-4'>
-					Powered by QRVault.one
+					Powered by QrPilot.app
 				</p>
 			</div>
 		</main>

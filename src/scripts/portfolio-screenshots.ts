@@ -5,10 +5,10 @@ dotenv.config({ path: '.env.local' });
 import { chromium, type Page } from '@playwright/test';
 
 // Configure these via env when you want prod shots
-const BASE_URL = process.env.QRVAULT_URL ?? 'http://localhost:3000';
+const BASE_URL = process.env.QRPILOT ?? 'http://localhost:3000';
 
 // Where screenshots will be saved (served from /public)
-const OUT_DIR = 'public/portfolio/qrvault-one';
+const OUT_DIR = 'public/portfolio/qrpilot-app';
 
 type Shot = {
 	name: string;

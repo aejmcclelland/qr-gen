@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
 			status: 200,
 			headers: {
 				'Content-Type': 'application/zip',
-				'Content-Disposition': `attachment; filename="qrvault-qrs.zip"`,
+				'Content-Disposition': `attachment; filename="qrpilot-qrs.zip"`,
 				'Cache-Control': 'no-store',
 			},
 		});

@@ -9,9 +9,9 @@
     "db:seed": "tsx src/scripts/seed.ts",
     "postinstall": "prisma generate",
     "pw:install": "playwright install",
-    "shots:qrvault": "tsx src/scripts/portfolio-screenshots.ts"
+    "shots:qrpilot": "tsx src/scripts/portfolio-screenshots.ts"
   },
-  "name": "qrvault",
+  "name": "qrpilot",
   "type": "module",
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",

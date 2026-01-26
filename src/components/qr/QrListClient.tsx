@@ -286,7 +286,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = 'qrvault-qrs.zip';
+			a.download = 'qrpilot-qrs.zip';
 
 			document.body.appendChild(a);
 			a.click();

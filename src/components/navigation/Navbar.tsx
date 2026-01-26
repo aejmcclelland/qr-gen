@@ -65,7 +65,7 @@ export function Navbar() {
 						<span className='inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10'>
 							<QrCode className='h-4 w-4 text-primary' />
 						</span>
-						<span className='font-semibold text-sm sm:text-base'>QrVault</span>
+						<span className='font-semibold text-sm sm:text-base'>QrPilot</span>
 					</Link>
 				</div>
 

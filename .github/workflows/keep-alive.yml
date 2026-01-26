@@ -14,4 +14,4 @@ jobs:
               run: |
                   curl -fsS \
                       -H "x-cron-secret: ${{ secrets.HEALTH_API_SECRET }}" \
-                      "https://qrvault.one/api/health?notify=1"
+                      "https://qrpilot.app/api/health?notify=1"

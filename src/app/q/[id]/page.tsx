@@ -93,11 +93,11 @@ export default async function PublicQrPage({
 				<div className='text-center text-sm text-base-content/70 mt-4'>
 					Generated with{' '}
 					<a
-						href='https://qrvault.one'
+						href='https://qrpilot.app'
 						target='_blank'
 						rel='noopener noreferrer'
 						className='text-primary hover:underline'>
-						QRVault.one
+						QRPilot
 					</a>
 				</div>
 			</div>

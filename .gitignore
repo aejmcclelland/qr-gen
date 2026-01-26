@@ -36,7 +36,7 @@ tsconfig.tsbuildinfo
 /playwright/.auth/
 
 # Local portfolio screenshots (do not commit)
-/public/portfolio/qrvault-one/
+/public/portfolio/qrpilot-app/
 
 # Screenshots
 /public/portfolio/ 
