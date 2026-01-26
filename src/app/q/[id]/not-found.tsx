@@ -14,7 +14,7 @@ export default function NotFound() {
 
 						<div className='mt-2 flex flex-col gap-2 w-full'>
 							<Link href='/' className='btn btn-primary btn-sm w-full'>
-								Back to QR Vault
+								Back to QrPilot
 							</Link>
 							<a
 								href='https://qrpilot.app'

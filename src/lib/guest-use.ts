@@ -3,7 +3,7 @@ export type GuestUsage = {
   locked: boolean;
 };
 
-const STORAGE_KEY = 'qr-gen-guest-usage';
+const STORAGE_KEY = 'qrpilot-guest-usage';
 
 export function checkGuestQrLimit(currentValue: string): {
   allowed: boolean;
