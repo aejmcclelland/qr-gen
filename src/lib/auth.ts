@@ -14,7 +14,7 @@ export const auth = betterAuth({
 			// url is the full reset link Better Auth generated (includes token)
 			await mailer({
 				to: user.email,
-				subject: 'Reset your QrVault password',
+				subject: 'Reset your QrPilo password',
 				html: `
         <p>Click the link below to reset your password:</p>
         <p><a href="${url}">Reset password</a></p>
@@ -25,8 +25,8 @@ export const auth = betterAuth({
 	},
 	trustedOrigins: [
 		'http://localhost:3000',
-		'https://qrvault.one',
-		'https://www.qrvault.one',
+		'https://qrpilot.app',
+		'https://www.qrpilot.app',
 	],
 	socialProviders: {
 		google: {
