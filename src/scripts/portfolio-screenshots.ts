@@ -13,7 +13,7 @@ const OUT_DIR = 'public/portfolio/qrpilot-app';
 type Shot = {
 	name: string;
 	path: string;
-	selector?: string; // optional: element-only screenshot
+	selector?: string; // Optional CSS selector to screenshot a specific element
 };
 
 async function getIds(prisma: any) {
@@ -48,7 +48,9 @@ async function loginIfNeeded(page: Page) {
 	}
 
 	// Use the same callbackURL pattern your app uses when redirecting from protected routes.
-	await page.goto(`${BASE_URL}/login?callbackURL=/qr`, { waitUntil: 'domcontentloaded' });
+	await page.goto(`${BASE_URL}/login?callbackURL=/qr`, {
+		waitUntil: 'domcontentloaded',
+	});
 	console.log(`[login] url=${page.url()}`);
 
 	// Try multiple strategies because DaisyUI/Tailwind forms often don't have <label for="..."> wired up.
@@ -85,7 +87,9 @@ async function loginIfNeeded(page: Page) {
 	}
 
 	if (!emailInput || !passwordInput) {
-		console.log('[login] Could not find login inputs — saving debug screenshot');
+		console.log(
+			'[login] Could not find login inputs — saving debug screenshot',
+		);
 		await page.screenshot({
 			path: `${OUT_DIR}/00-login--MISSING-FIELDS.png`,
 			animations: 'disabled',
@@ -93,7 +97,9 @@ async function loginIfNeeded(page: Page) {
 			fullPage: false,
 			scale: 'device',
 		});
-		throw new Error('Login form inputs not found. Update selectors in loginIfNeeded().');
+		throw new Error(
+			'Login form inputs not found. Update selectors in loginIfNeeded().',
+		);
 	}
 
 	await emailInput.fill(email);
@@ -102,17 +108,23 @@ async function loginIfNeeded(page: Page) {
 	// Submit the credentials form (avoid clicking "Continue with Google" etc.)
 	// Prefer a submit button that belongs to the form containing the password input.
 	const form = page.locator('form', { has: passwordInput });
-	const submitBtn = form.locator('button[type="submit"], input[type="submit"]').first();
+	const submitBtn = form
+		.locator('button[type="submit"], input[type="submit"]')
+		.first();
 
 	if ((await submitBtn.count()) > 0) {
 		await Promise.all([
-			page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => null),
+			page
+				.waitForNavigation({ waitUntil: 'domcontentloaded' })
+				.catch(() => null),
 			submitBtn.click(),
 		]);
 	} else {
 		// Fallback: pressing Enter in the password field often submits the form.
 		await Promise.all([
-			page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => null),
+			page
+				.waitForNavigation({ waitUntil: 'domcontentloaded' })
+				.catch(() => null),
 			passwordInput.press('Enter'),
 		]);
 	}
@@ -129,7 +141,9 @@ async function loginIfNeeded(page: Page) {
 			fullPage: false,
 			scale: 'device',
 		});
-		throw new Error('Login submission redirected to Google OAuth. Ensure the script submits the credentials form (not the Google button).');
+		throw new Error(
+			'Login submission redirected to Google OAuth. Ensure the script submits the credentials form (not the Google button).',
+		);
 	}
 
 	// If still on /login, capture the state (bad creds / validation / captcha / etc.)
@@ -141,7 +155,9 @@ async function loginIfNeeded(page: Page) {
 			fullPage: false,
 			scale: 'device',
 		});
-		console.log('[login] Still on /login after submit — check creds or validation UI');
+		console.log(
+			'[login] Still on /login after submit — check creds or validation UI',
+		);
 	}
 
 	// Success criterion: authenticated pages should be reachable.
@@ -155,7 +171,9 @@ async function loginIfNeeded(page: Page) {
 			fullPage: false,
 			scale: 'device',
 		});
-		throw new Error('Login failed: /profile redirected to /login. Check demo credentials and login UI.');
+		throw new Error(
+			'Login failed: /profile redirected to /login. Check demo credentials and login UI.',
+		);
 	}
 	console.log('[login] Success — /profile reachable');
 
@@ -178,7 +196,9 @@ async function preparePage(page: Page) {
 }
 
 async function snap(page: Page, s: Shot) {
-	const res = await page.goto(`${BASE_URL}${s.path}`, { waitUntil: 'domcontentloaded' });
+	const res = await page.goto(`${BASE_URL}${s.path}`, {
+		waitUntil: 'domcontentloaded',
+	});
 	const status = res?.status();
 	console.log(`[snap] ${s.name} -> ${page.url()} (${status})`);
 
@@ -228,13 +248,11 @@ async function resolveFirstQrDetailPath(page: Page) {
 	await page.waitForTimeout(300);
 
 	// Grab candidate hrefs from links that look like /q/<id>
-	const hrefs = await page
+	const hrefs = (await page
 		.locator('a[href^="/q/"]')
 		.evaluateAll((els) =>
-			els
-				.map((e) => e.getAttribute('href'))
-				.filter(Boolean)
-		) as string[];
+			els.map((e) => e.getAttribute('href')).filter(Boolean),
+		)) as string[];
 
 	// Pick the first href that matches /q/<id>
 	const match = hrefs.find((h) => /^\/q\/[^/?#]+$/.test(h));
@@ -274,7 +292,9 @@ async function main() {
 
 	const detailPath = await resolveFirstQrDetailPath(page);
 	if (!detailPath) {
-		console.log('[detail] Could not find a /q/:id link on the dashboard; falling back to the prisma-selected publicId');
+		console.log(
+			'[detail] Could not find a /q/:id link on the dashboard; falling back to the prisma-selected publicId',
+		);
 	}
 
 	const shots: Shot[] = [
@@ -310,7 +330,10 @@ async function main() {
 	});
 	const publicPage = await publicContext.newPage();
 
-	await snap(publicPage, { name: '04-public-share-page', path: `/q/${publicId}` });
+	await snap(publicPage, {
+		name: '04-public-share-page',
+		path: `/q/${publicId}`,
+	});
 	console.log('Saved 04-public-share-page.png');
 
 	await snap(publicPage, { name: '06-login', path: '/login' });
@@ -332,7 +355,10 @@ async function main() {
 		deviceScaleFactor: 2,
 	});
 	const mobilePublicPage = await mobilePublicContext.newPage();
-	await snap(mobilePublicPage, { name: '08-mobile-public-share', path: `/q/${publicId}` });
+	await snap(mobilePublicPage, {
+		name: '08-mobile-public-share',
+		path: `/q/${publicId}`,
+	});
 	console.log('Saved 08-mobile-public-share.png');
 
 	await browser.close();
