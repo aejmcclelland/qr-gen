@@ -14,7 +14,7 @@ export const auth = betterAuth({
 			// url is the full reset link Better Auth generated (includes token)
 			await mailer({
 				to: user.email,
-				subject: 'Reset your QrPilo password',
+				subject: 'Reset your QrPilot password',
 				html: `
         <p>Click the link below to reset your password:</p>
         <p><a href="${url}">Reset password</a></p>
