@@ -22,7 +22,7 @@ const MUST_LOGIN_TO_SAVE_MESSAGE =
 	'To save QR codes and access them later, please log in or create a free account.';
 
 const ALREADY_CREATED_THIS_QR_CODE =
-	"You’ve already saved a QR for this URL. Open ‘My QRs’ to view it, or enter a different URL.";
+	'You’ve already saved a QR for this URL. Open ‘My QRs’ to view it, or enter a different URL.';
 
 const CALLBACK_URL = '/qr';
 
@@ -79,11 +79,12 @@ export function QrGeneratorCard() {
 		'info' | 'success' | 'error' | 'warning'
 	>('info');
 
-	const enforceGuestLimit = (nextValue: string) => {
+	const enforceGuestLimit = (nextValue: string): boolean => {
 		// Logged-in users are always allowed
 		if (session) return true;
 
-		const limit = checkGuestQrLimit(nextValue);
+		const normalized = nextValue.trim().toLowerCase();
+		const limit = checkGuestQrLimit(normalized);
 
 		if (!limit.allowed) {
 			setSaveMessage(limit.message ?? GUEST_LIMIT_MESSAGE);
@@ -267,7 +268,8 @@ export function QrGeneratorCard() {
 						positionClassName='toast-top toast-center'
 						onClose={() => setShowToast(false)}
 						actions={
-							(showAuthActions || saveMessage === ALREADY_CREATED_THIS_QR_CODE) && (
+							(showAuthActions ||
+								saveMessage === ALREADY_CREATED_THIS_QR_CODE) && (
 								<div className='flex gap-2'>
 									{showAuthActions ? (
 										<>
@@ -276,7 +278,7 @@ export function QrGeneratorCard() {
 												className='btn btn-outline btn-xs'
 												onClick={() =>
 													router.push(
-														`/login?callbackURL=${encodeURIComponent(CALLBACK_URL)}`
+														`/login?callbackURL=${encodeURIComponent(CALLBACK_URL)}`,
 													)
 												}>
 												Log in
@@ -286,7 +288,7 @@ export function QrGeneratorCard() {
 												className='btn btn-primary btn-xs'
 												onClick={() =>
 													router.push(
-														`/signup?callbackURL=${encodeURIComponent(CALLBACK_URL)}`
+														`/signup?callbackURL=${encodeURIComponent(CALLBACK_URL)}`,
 													)
 												}>
 												Sign up

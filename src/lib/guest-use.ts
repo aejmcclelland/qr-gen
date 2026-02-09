@@ -12,7 +12,7 @@ export function checkGuestQrLimit(currentValue: string): {
   if (typeof window === 'undefined') {
     return { allowed: true };
   }
-
+  //if nothing in storage, allow and set the first value
   const raw = window.localStorage.getItem(STORAGE_KEY);
 
   // First-ever QR for a guest
