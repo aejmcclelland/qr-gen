@@ -21,8 +21,9 @@ jobs:
           # -sS: silent but show errors
           # -D -: print response headers (useful if debugging)
           curl --connect-timeout 10 --max-time 20 \
+            --location \
             -fSsS -D - \
             -H "x-cron-secret: ${HEALTH_API_SECRET}" \
             -H "x-cron-notify: 1" \
-            "https://qrpilot.app/api/health" \
+            "https://www.qrpilot.app/api/health" \
             | tee /dev/stderr
