@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 		const providedSecret = secretFromHeader ?? secretFromQuery;
 
 		// Only send success notifications when explicitly requested by the scheduler
-		// (avoids spam if you hit /api/health manually).
+		// (avoids spam if hit /api/health manually).
 		const notifySuccess =
 			req.headers.get('x-cron-notify') === '1' ||
 			req.nextUrl.searchParams.get('notify') === '1';
@@ -50,9 +50,20 @@ export async function GET(req: NextRequest) {
 			);
 		}
 
-		// Minimal, fast query: fetch a single row id only
+		// Write a lightweight row so Supabase registers DB activity
 		await prisma.keepalive.create({
 			data: { source: 'github-action' },
+		});
+
+		// Prune rows older than 30 days (keeps table small)
+		const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+		await prisma.keepalive.deleteMany({
+			where: {
+				ranAt: {
+					lt: new Date(Date.now() - THIRTY_DAYS_MS),
+				},
+			},
 		});
 
 		if (notifySuccess) {
