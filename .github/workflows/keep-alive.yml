@@ -1,29 +1,28 @@
 name: Supabase Keep Alive
 
 on:
-  schedule:
-    # Daily at 09:00 UTC
-    - cron: "0 9 * * *"
-  workflow_dispatch: {}
+    schedule:
+        # Daily at 09:00 UTC
+        - cron: "0 9 * * *"
+    workflow_dispatch: {}
 
 jobs:
-  ping-health:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Call health endpoint (DB keepalive)
-        env:
-          HEALTH_API_SECRET: ${{ secrets.HEALTH_API_SECRET }}
-        run: |
-          set -euo pipefail
+    ping-health:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Call health endpoint (DB keepalive)
+              env:
+                  HEALTH_API_SECRET: ${{ secrets.HEALTH_API_SECRET }}
+              run: |
+                  set -euo pipefail
 
-          # Call /api/health with header auth + header notify (no query params)
-          # -f: fail on non-2xx
-          # -sS: silent but show errors
-          # -D -: print response headers (useful if debugging)
-          curl --connect-timeout 10 --max-time 20 \
-            --location \
-            -fSsS -D - \
-            -H "x-cron-secret: ${HEALTH_API_SECRET}" \
-            -H "x-cron-notify: 1" \
-            "https://www.qrpilot.app/api/health" \
-            | tee /dev/stderr
+                  # Call /api/health with header auth + header notify (no query params)
+                  # -f: fail on non-2xx
+                  # -sS: silent but show errors
+                  # -D -: print response headers (useful if debugging)
+                  curl --connect-timeout 10 --max-time 20 \
+                    --location \
+                    -fSsS -D - \
+                    -H "x-cron-secret: ${HEALTH_API_SECRET}" \
+                    "https://www.qrpilot.app/api/health" \
+                    | tee /dev/stderr
