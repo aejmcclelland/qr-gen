@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
 		}
 
 		// Minimal, fast query: fetch a single row id only
-		await prisma.qrcodes.findFirst({
-			select: { id: true },
+		await prisma.keepalive.create({
+			data: { source: 'github-action' },
 		});
 
 		if (notifySuccess) {

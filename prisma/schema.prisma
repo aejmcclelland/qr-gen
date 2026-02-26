@@ -4,6 +4,15 @@ generator client {
    engineType = "client"
 }
 
+model Keepalive {
+  id     BigInt   @id @default(autoincrement())
+  ranAt  DateTime @default(now())
+  source String
+
+  @@map("keepalive")
+}
+
+
 datasource db {
   provider  = "postgresql"
 }
