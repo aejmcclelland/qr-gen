@@ -1,7 +1,7 @@
 // src/components/qr/AnimatedQrPlaceholder.tsx
 'use client';
 import Image from 'next/image';
-import placeholderImg from '../../../public/portfolio/qr-image.svg';
+import placeholderImg from '../../../public/portfolio/qr-placeholder.png';
 
 export function QrPlaceholder() {
 	return (
