@@ -1,12 +1,12 @@
 // src/lib/qr-mapper.ts
-import type { qrcodes } from '../../generated/prisma/client';
+import type { qrcodes } from '@prisma/client';
 
 export type QrClient = {
 	id: string;
 	targetUrl: string;
 	label: string | null;
 	category: string;
-	createdAt: string; 
+	createdAt: string;
 	isPublic: boolean;
 };
 
