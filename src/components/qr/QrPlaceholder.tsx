@@ -1,12 +1,11 @@
 // src/components/qr/AnimatedQrPlaceholder.tsx
 'use client';
 import Image from 'next/image';
-import placeholderImg from '../../../public/portfolio/qr-placeholder.png';
 
 export function QrPlaceholder() {
 	return (
 		<Image
-			src={placeholderImg}
+			src="/portfolio/qr-placeholder.png"
 			alt='QR Placeholder'
 			width={200}
 			height={200}
