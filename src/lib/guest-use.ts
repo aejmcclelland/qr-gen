@@ -9,11 +9,11 @@ export function checkGuestQrLimit(currentValue: string): {
   allowed: boolean;
   message?: string;
 } {
-  if (typeof window === 'undefined') {
+  if (typeof globalThis === 'undefined') {
     return { allowed: true };
   }
   //if nothing in storage, allow and set the first value
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = globalThis.localStorage.getItem(STORAGE_KEY);
 
   // First-ever QR for a guest
   if (!raw) {
@@ -21,7 +21,7 @@ export function checkGuestQrLimit(currentValue: string): {
       firstValue: currentValue,
       locked: false,
     };
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(usage));
+    globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(usage));
     return { allowed: true };
   }
 
@@ -33,7 +33,7 @@ export function checkGuestQrLimit(currentValue: string): {
       firstValue: currentValue,
       locked: false,
     };
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(usage));
+    globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(usage));
     return { allowed: true };
   }
 
@@ -45,7 +45,7 @@ export function checkGuestQrLimit(currentValue: string): {
   // If this is the first different QR, lock further usage
   if (!usage.locked && usage.firstValue !== currentValue) {
     usage.locked = true;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(usage));
+    globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(usage));
     return {
       allowed: false,
       message:

@@ -1,9 +1,7 @@
 // src/app/api/qrs/[id]/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthedUserId } from '@/lib/getAuthedUserId';
-
 
 // GET /api/qrs/:id - fetch a single QR for the current user
 export async function GET(

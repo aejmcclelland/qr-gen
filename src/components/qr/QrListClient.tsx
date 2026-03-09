@@ -5,6 +5,7 @@ import { Toast } from '@/components/ui/Toast';
 import { QrCard } from '@/components/qr/QrCard';
 import ConfirmDeleteModal from '@/components/qr/ConfirmDeleteModal';
 import { BulkActionBar } from '@/components/qr/BulkActionBar';
+import type { QrClient } from '@/lib/qr-mapper';
 import { CheckSquare } from 'lucide-react';
 
 async function readErrorPayload(
@@ -15,7 +16,7 @@ async function readErrorPayload(
 	// Prefer machine-readable JSON when available
 	if (contentType.includes('application/json')) {
 		try {
-			const data = (await res.json()) as any;
+			const data = await res.json();
 			return {
 				code: typeof data?.code === 'string' ? data.code : undefined,
 				message:
@@ -39,22 +40,13 @@ async function readErrorPayload(
 	}
 }
 
-type Qr = {
-	id: string;
-	targetUrl: string;
-	label: string | null;
-	category: string;
-	createdAt: string;
-	isPublic: boolean;
-};
-
 type Props = {
-	initialQrs: Qr[];
+	initialQrs: QrClient[];
 	activeCategories: string[];
 };
 
-export default function QrListClient({ initialQrs, activeCategories }: Props) {
-	const [qrs, setQrs] = useState<Qr[]>(initialQrs);
+export default function QrListClient({  initialQrs,  activeCategories }: Props) {
+	const [qrs, setQrs] = useState<QrClient[]>(initialQrs);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editLabel, setEditLabel] = useState('');
@@ -121,7 +113,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 			setDeletingId(null);
 		}
 	};
-	const startEdit = (qr: Qr) => {
+	const startEdit = (qr: QrClient) => {
 		setEditingId(qr.id);
 		setEditLabel(qr.label ?? '');
 		setEditCategory(qr.category);
@@ -332,7 +324,7 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 
 			if (!res.ok) throw new Error('Failed to update');
 
-			const updated = (await res.json()) as Qr;
+				const updated = (await res.json()) as QrClient;
 
 			setQrs((prev) =>
 				prev.map((qr) => (qr.id === id ? { ...qr, ...updated } : qr))
@@ -448,22 +440,13 @@ export default function QrListClient({ initialQrs, activeCategories }: Props) {
 						onChangeLabel={setEditLabel}
 						onChangeUrl={setEditUrl}
 						onChangeCategory={setEditCategory}
-						onSubmitEdit={(e) => handleEditSubmit(e, qr.id)}
-						onDelete={() => handleDelete(qr.id)}
-						onVisit={() => {
-							window.open(qr.targetUrl, '_blank', 'noopener,noreferrer');
-						}}
-						onCopy={() => {
-							navigator.clipboard.writeText(qr.targetUrl);
-							setToast({
-								show: true,
-								message: 'URL copied to clipboard.',
-								variant: 'success',
-							});
-						}}
-					/>
-				))}
-			</div>
+							onSubmitEdit={(e: FormEvent<HTMLFormElement>) =>
+								handleEditSubmit(e, qr.id)
+							}
+							onDelete={() => handleDelete(qr.id)}
+						/>
+					))}
+				</div>
 			<ConfirmDeleteModal
 				open={confirmOpen}
 				count={selectedIds.size}

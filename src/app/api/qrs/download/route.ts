@@ -15,16 +15,16 @@ type Body = {
 };
 
 function jsonError(status: number, code: string, message: string) {
-  return NextResponse.json({ code, message }, { status });
+	return NextResponse.json({ code, message }, { status });
 }
 
 function safeFilename(input: string) {
 	return input
 		.toLowerCase()
-		.replace(/https?:\/\//g, '')
-		.replace(/[^a-z0-9-_]+/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/(^-|-$)/g, '')
+		.replaceAll(/https?:\/\//g, '')
+		.replaceAll(/[^a-z0-9-_]+/g, '-')
+		.replaceAll(/-+/g, '-')
+		.replaceAll(/(^-|-$)/g, '')
 		.slice(0, 48);
 }
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 			return jsonError(
 				401,
 				'UNAUTHORISED',
-				'You must be logged in to download QR codes.'
+				'You must be logged in to download QR codes.',
 			);
 		}
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 				'BULK_MIN_2',
 				ids.length === 0
 					? 'No QR codes selected.'
-					: 'Bulk download requires 2 or more QR codes. Use the single download option from the QR menu.'
+					: 'Bulk download requires 2 or more QR codes. Use the single download option from the QR menu.',
 			);
 		}
 		// Fetch only QRs belonging to this user
@@ -91,10 +91,12 @@ export async function POST(req: NextRequest) {
 				margin: 2,
 			});
 
-			const rawBase = safeFilename(qr.label ?? '') || safeFilename(qr.targetUrl) || qr.id;
+			const rawBase =
+				safeFilename(qr.label ?? '') || safeFilename(qr.targetUrl) || qr.id;
 			const count = (usedNames.get(rawBase) ?? 0) + 1;
 			usedNames.set(rawBase, count);
-			const filename = count === 1 ? `${rawBase}.png` : `${rawBase}-${count}.png`;
+			const filename =
+				count === 1 ? `${rawBase}.png` : `${rawBase}-${count}.png`;
 
 			zip.file(filename, pngBuffer);
 		}

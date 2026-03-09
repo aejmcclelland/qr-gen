@@ -94,3 +94,45 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+model ReviewLink {
+  id            String              @id @default(uuid())
+  slug          String              @unique
+  businessName  String?
+  notifyEmail   String?
+  isActive      Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  destinations  ReviewDestination[]
+  submissions   ReviewSubmission[]
+}
+
+model ReviewDestination {
+  id            String      @id @default(uuid())
+  reviewLinkId  String
+  platformKey   String
+  label         String
+  reviewUrl     String
+  isActive      Boolean     @default(true)
+  sortOrder     Int         @default(0)
+
+  reviewLink    ReviewLink  @relation(fields: [reviewLinkId], references: [id], onDelete: Cascade)
+
+  @@index([reviewLinkId, sortOrder])
+  @@unique([reviewLinkId, platformKey])
+}
+
+model ReviewSubmission {
+  id           String      @id @default(uuid())
+  reviewLinkId String
+  rating       Int
+  message      String?
+  userAgent    String?
+  ipHash       String?
+  createdAt    DateTime    @default(now())
+
+  reviewLink   ReviewLink  @relation(fields: [reviewLinkId], references: [id], onDelete: Cascade)
+
+  @@index([reviewLinkId, createdAt])
+}

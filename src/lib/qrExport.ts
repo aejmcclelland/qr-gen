@@ -14,15 +14,16 @@ export type QrCanvasOptions = {
 const DEFAULT_SIZE = 1024;
 const DEFAULT_BG = '#FFFFFF';
 
-function escapeHtml(input: string) {
-	return input
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
+// …existing code…
+function escapeHtml(str: string): string {
+	return str
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;')
+		.replaceAll('"', '&quot;')
+		.replaceAll("'", '&#39;');
 }
-
+// …existing code…
 /**
  * Render the QR inside `rootEl` to a canvas.
  * - Prefers SVG if present (higher fidelity)
@@ -30,7 +31,7 @@ function escapeHtml(input: string) {
  */
 export async function resolveQrCanvasFromElement(
 	rootEl: HTMLElement,
-	opts: QrCanvasOptions = {}
+	opts: QrCanvasOptions = {},
 ): Promise<HTMLCanvasElement> {
 	const size = opts.size ?? DEFAULT_SIZE;
 	const background = opts.background ?? DEFAULT_BG;
@@ -75,9 +76,9 @@ export async function resolveQrCanvasFromElement(
 	}
 
 	// Fallback: existing canvas
-	const existingCanvas = rootEl.querySelector('canvas') as
-		| HTMLCanvasElement
-		| null;
+	const existingCanvas = rootEl.querySelector(
+		'canvas',
+	) as HTMLCanvasElement | null;
 	if (existingCanvas) {
 		// Copy it into a fresh canvas at the desired output size
 		const canvas = document.createElement('canvas');
@@ -103,7 +104,7 @@ export function canvasToDataUrlPng(canvas: HTMLCanvasElement): string {
 
 export function canvasToDataUrlJpg(
 	canvas: HTMLCanvasElement,
-	quality = 0.92
+	quality = 0.92,
 ): string {
 	return canvas.toDataURL('image/jpeg', quality);
 }
@@ -111,7 +112,7 @@ export function canvasToDataUrlJpg(
 export function canvasToBlob(
 	canvas: HTMLCanvasElement,
 	type: 'image/png' | 'image/jpeg' = 'image/png',
-	quality = 0.92
+	quality = 0.92,
 ): Promise<Blob> {
 	return new Promise((resolve, reject) => {
 		canvas.toBlob(
@@ -120,7 +121,7 @@ export function canvasToBlob(
 				resolve(blob);
 			},
 			type,
-			type === 'image/jpeg' ? quality : undefined
+			type === 'image/jpeg' ? quality : undefined,
 		);
 	});
 }
@@ -178,7 +179,7 @@ export function downloadDataUrl(dataUrl: string, filename: string) {
 
 export function downloadCanvasAsPng(
 	canvas: HTMLCanvasElement,
-	filenameBase: string
+	filenameBase: string,
 ) {
 	downloadDataUrl(canvasToDataUrlPng(canvas), `${filenameBase}.png`);
 }
@@ -186,7 +187,7 @@ export function downloadCanvasAsPng(
 export function downloadCanvasAsJpg(
 	canvas: HTMLCanvasElement,
 	filenameBase: string,
-	quality = 0.92
+	quality = 0.92,
 ) {
 	downloadDataUrl(canvasToDataUrlJpg(canvas, quality), `${filenameBase}.jpg`);
 }

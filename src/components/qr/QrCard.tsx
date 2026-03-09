@@ -14,15 +14,7 @@ import { QrCardActions } from '@/components/qr/QrCardActions';
 import { useQrExport } from '@/hooks/useQrExport';
 import { Copy, ExternalLink, Share } from 'lucide-react';
 import { IsPublicToggle } from '@/components/qr/IsPublicToggle';
-
-type Qr = {
-	id: string;
-	targetUrl: string;
-	label: string | null;
-	category: string;
-	createdAt: string;
-	isPublic?: boolean;
-};
+import type { QrClient } from '@/lib/qr-mapper';
 
 function isIosSafari() {
 	if (typeof navigator === 'undefined') return false;
@@ -53,7 +45,7 @@ const CATEGORY_BADGE_CLASSES: Record<string, string> = {
 };
 
 type QrCardProps = {
-	qr: Qr;
+	qr: QrClient;
 	isEditing: boolean;
 	editLabel: string;
 	editUrl: string;
@@ -70,8 +62,6 @@ type QrCardProps = {
 	onChangeCategory: (value: string) => void;
 	onSubmitEdit: (e: FormEvent<HTMLFormElement>) => void;
 	onDelete: () => void;
-	onVisit: () => void;
-	onCopy: () => void;
 	onTogglePublic: (id: string, next: boolean) => void | Promise<void>;
 };
 
@@ -94,8 +84,6 @@ export function QrCard({
 	onSubmitEdit,
 	onDelete,
 	onTogglePublic,
-	onVisit: _onVisit,
-	onCopy: _onCopy,
 }: QrCardProps) {
 	const qrRenderRef = useRef<HTMLDivElement | null>(null);
 
@@ -153,14 +141,14 @@ export function QrCard({
 		}
 	}, [downloadJpg]);
 
-	const onPrint = useCallback(() => {
-		// Important: don't return a Promise from an onClick handler used by the dropdown.
-		// Some UI libs don't await handlers, and Next dev can treat rejections as uncaught.
-		void print().catch((err) => {
-			const message =
-				err instanceof Error ? err.message : 'Print failed. Please try again.';
-			console.warn('[print]', message);
-			showToast(message, 'info');
+		const onPrint = useCallback(() => {
+			// Important: don't return a Promise from an onClick handler used by the dropdown.
+			// Some UI libs don't await handlers, and Next dev can treat rejections as uncaught.
+			void print().catch((err: unknown) => {
+				const message =
+					err instanceof Error ? err.message : 'Print failed. Please try again.';
+				console.warn('[print]', message);
+				showToast(message, 'info');
 		});
 	}, [print, showToast]);
 
@@ -426,13 +414,13 @@ export function QrCard({
 							/>
 						</div>
 					) : null}
-					<div className='flex items-start m-2 w-full'>
-						<IsPublicToggle
-							isPublic={qr.isPublic ?? false}
-							onToggle={(next) => onTogglePublic(qr.id, next)}
-							disabled={isSelecting || isEditing || savingEdit}
-							id={`is-public-toggle-${qr.id}`}
-						/>
+						<div className='flex items-start m-2 w-full'>
+							<IsPublicToggle
+								isPublic={qr.isPublic ?? false}
+								onToggle={(next: boolean) => onTogglePublic(qr.id, next)}
+								disabled={isSelecting || isEditing || savingEdit}
+								id={`is-public-toggle-${qr.id}`}
+							/>
 					</div>
 					<div className='text-center w-full'>
 						<p

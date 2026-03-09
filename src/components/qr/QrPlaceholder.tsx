@@ -5,7 +5,7 @@ import Image from 'next/image';
 export function QrPlaceholder() {
 	return (
 		<Image
-			src="/portfolio/qr-placeholder.png"
+			src='/qrpilot-app/portfolio/qr-placeholder.png'
 			alt='QR Placeholder'
 			width={200}
 			height={200}
