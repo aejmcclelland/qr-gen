@@ -2,7 +2,7 @@
 
 import {
 	type ChangeEvent,
-	type FormEvent,
+	type SyntheticEvent,
 	useCallback,
 	useEffect,
 	useRef,
@@ -45,27 +45,28 @@ const CATEGORY_BADGE_CLASSES: Record<string, string> = {
 };
 
 type QrCardProps = {
-	qr: QrClient;
-	isEditing: boolean;
-	editLabel: string;
-	editUrl: string;
-	savingEdit: boolean;
-	editCategory: string;
-	isSelecting: boolean;
-	isSelected: boolean;
-	onToggleSelect: () => void;
-	onEnterSelectMode: () => void;
-	onStartEdit: () => void;
-	onCancelEdit: () => void;
-	onChangeLabel: (value: string) => void;
-	onChangeUrl: (value: string) => void;
-	onChangeCategory: (value: string) => void;
-	onSubmitEdit: (e: FormEvent<HTMLFormElement>) => void;
-	onDelete: () => void;
-	onTogglePublic: (id: string, next: boolean) => void | Promise<void>;
+	readonly qr: QrClient;
+	readonly isEditing: boolean;
+	readonly editLabel: string;
+	readonly editUrl: string;
+	readonly savingEdit: boolean;
+	readonly editCategory: string;
+	readonly isSelecting: boolean;
+	readonly isSelected: boolean;
+	readonly onToggleSelect: () => void;
+	readonly onEnterSelectMode: () => void;
+	readonly onStartEdit: () => void;
+	readonly onCancelEdit: () => void;
+	readonly onChangeLabel: (value: string) => void;
+	readonly onChangeUrl: (value: string) => void;
+	readonly onChangeCategory: (value: string) => void;
+	readonly onSubmitEdit: (e: SyntheticEvent<HTMLFormElement>) => void;
+	readonly onDelete: () => void;
+	readonly onTogglePublic: (id: string, next: boolean) => void | Promise<void>;
 };
 
-export function QrCard({
+
+export function QrCard ({ 
 	qr,
 	isEditing,
 	editLabel,
@@ -100,7 +101,7 @@ export function QrCard({
 	const showToast = useCallback(
 		(
 			message: string,
-			variant: 'info' | 'success' | 'warning' | 'error' = 'info'
+			variant: 'info' | 'success' | 'warning' | 'error' = 'info',
 		) => {
 			// Dedupe: if the same toast is already showing, don't stack/retrigger.
 			if (toast.show && toast.message === message && toast.variant === variant)
@@ -109,13 +110,13 @@ export function QrCard({
 			setToast({ show: true, message, variant });
 
 			// Auto-hide after 6s
-			window.setTimeout(() => {
+			globalThis.setTimeout(() => {
 				setToast((prev) =>
-					prev.message === message ? { ...prev, show: false } : prev
+					prev.message === message ? { ...prev, show: false } : prev,
 				);
 			}, 6000);
 		},
-		[toast.show, toast.message, toast.variant]
+		[toast.show, toast.message, toast.variant],
 	);
 
 	const { downloadPng, downloadJpg, print } = useQrExport({
@@ -141,14 +142,14 @@ export function QrCard({
 		}
 	}, [downloadJpg]);
 
-		const onPrint = useCallback(() => {
-			// Important: don't return a Promise from an onClick handler used by the dropdown.
-			// Some UI libs don't await handlers, and Next dev can treat rejections as uncaught.
-			void print().catch((err: unknown) => {
-				const message =
-					err instanceof Error ? err.message : 'Print failed. Please try again.';
-				console.warn('[print]', message);
-				showToast(message, 'info');
+	const onPrint = useCallback(() => {
+		// Important: don't return a Promise from an onClick handler used by the dropdown.
+		// Some UI libs don't await handlers, and Next dev can treat rejections as uncaught.
+		void print().catch((err: unknown) => {
+			const message =
+				err instanceof Error ? err.message : 'Print failed. Please try again.';
+			console.warn('[print]', message);
+			showToast(message, 'info');
 		});
 	}, [print, showToast]);
 
@@ -158,7 +159,7 @@ export function QrCard({
 			e.stopPropagation();
 			window.open(qr.targetUrl, '_blank', 'noopener,noreferrer');
 		},
-		[qr.targetUrl]
+		[qr.targetUrl],
 	);
 
 	const onQuickCopy = useCallback(
@@ -172,7 +173,7 @@ export function QrCard({
 				showToast('Could not copy the URL. Please try again.', 'error');
 			}
 		},
-		[qr.targetUrl, showToast]
+		[qr.targetUrl, showToast],
 	);
 
 	const onQuickOpenQrPage = useCallback(
@@ -183,17 +184,17 @@ export function QrCard({
 			if (!qr.isPublic) {
 				showToast(
 					'This QR is private. Toggle Public to open the QR page.',
-					'info'
+					'info',
 				);
 				return;
 			}
 
 			window.open(`/q/${qr.id}`, '_blank', 'noopener,noreferrer');
 		},
-		[qr.id, qr.isPublic, showToast]
+		[qr.id, qr.isPublic, showToast],
 	);
 
-	const longPressTimerRef = useRef<number | null>(null);
+	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const longPressTriggeredRef = useRef(false);
 
 	const lastPointerTypeRef = useRef<string | null>(null);
@@ -211,7 +212,7 @@ export function QrCard({
 
 	const clearLongPress = useCallback(() => {
 		if (longPressTimerRef.current) {
-			window.clearTimeout(longPressTimerRef.current);
+			globalThis.clearTimeout(longPressTimerRef.current);
 			longPressTimerRef.current = null;
 		}
 	}, []);
@@ -237,43 +238,26 @@ export function QrCard({
 			longPressTriggeredRef.current = false;
 			clearLongPress();
 
-			longPressTimerRef.current = window.setTimeout(() => {
+			longPressTimerRef.current = globalThis.setTimeout(() => {
 				longPressTriggeredRef.current = true;
 				haptic(12);
 				onEnterSelectMode();
 			}, 520);
 		},
-		[clearLongPress, isEditing, isSelecting, onEnterSelectMode, haptic]
+		[clearLongPress, isEditing, isSelecting, onEnterSelectMode, haptic],
 	);
 
 	const handlePointerUp = useCallback(() => {
 		clearLongPress();
 	}, [clearLongPress]);
 
-	const handleCardClick = useCallback(() => {
-		// When selecting, tapping the card toggles selection.
-		if (isSelecting) {
-			haptic(8);
-			onToggleSelect();
-			return;
-		}
-	}, [isSelecting, onToggleSelect, haptic]);
-
 	return (
 		<div
-			className={`card bg-base-100 shadow-md p-4 flex flex-col items-center gap-3 relative select-none touch-manipulation ${
+			className={`card bg-base-100 shadow-md p-4 flex w-full min-w-0 max-w-full flex-col items-center gap-3 overflow-hidden relative select-none touch-manipulation ${
 				isSelecting && isSelected
 					? 'ring ring-primary ring-offset-2 ring-offset-base-100'
 					: ''
-			}`}
-			onPointerDown={handlePointerDown}
-			onPointerUp={handlePointerUp}
-			onPointerCancel={handlePointerUp}
-			onPointerLeave={handlePointerUp}
-			onClick={handleCardClick}
-			role={isSelecting ? 'button' : undefined}
-			tabIndex={isSelecting ? 0 : undefined}
-			onContextMenu={(e) => e.preventDefault()}>
+			}`}>
 			<Toast
 				show={toast.show}
 				message={toast.message}
@@ -281,9 +265,37 @@ export function QrCard({
 				onClose={() => setToast((prev) => ({ ...prev, show: false }))}
 			/>
 
+			{!isSelecting && !isEditing ? (
+				<button
+					type='button'
+					className='absolute inset-0 z-10'
+					onPointerDown={handlePointerDown}
+					onPointerUp={handlePointerUp}
+					onPointerCancel={handlePointerUp}
+					onPointerLeave={handlePointerUp}
+					onContextMenu={(e) => e.preventDefault()}
+					aria-label='Hold to select QR'
+				/>
+			) : null}
+
+			{isSelecting && !isEditing ? (
+				<button
+					type='button'
+					className='absolute inset-0 z-20'
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						haptic(8);
+						onToggleSelect();
+					}}
+					aria-label={isSelected ? 'Deselect QR' : 'Select QR'}
+					aria-pressed={isSelected}
+				/>
+			) : null}
+
 			<button
 				type='button'
-				className={`absolute top-3 left-3 z-10 ${
+				className={`absolute top-3 left-3 z-30 ${
 					isSelecting ? 'transition-opacity duration-200 opacity-100' : 'hidden'
 				}`}
 				onClick={(e) => {
@@ -302,20 +314,21 @@ export function QrCard({
 				/>
 			</button>
 
-			<div className='p-2 bg-base-200 rounded-xl' ref={qrRenderRef}>
+			<div className='pointer-events-none relative z-20 p-2 bg-base-200 rounded-xl max-w-full' ref={qrRenderRef}>
 				<ClientQRCode
 					data={qr.targetUrl}
-					className='size-36 rounded bg-white p-3 shadow'
+					className='size-36 max-w-full rounded bg-white p-3 shadow'
 				/>
 			</div>
 
 			{isEditing ? (
-				<form onSubmit={onSubmitEdit} className='w-full flex flex-col gap-2'>
+				<form onSubmit={onSubmitEdit} className='relative z-30 w-full flex flex-col gap-2'>
 					<div className='form-control w-full'>
-						<label className='label'>
+						<label className='label' htmlFor={`edit-label-${qr.id}`}>
 							<span className='label-text'>Label</span>
 						</label>
 						<input
+							id={`edit-label-${qr.id}`}
 							type='text'
 							className='input input-bordered input-sm w-full'
 							value={editLabel}
@@ -326,16 +339,21 @@ export function QrCard({
 					</div>
 
 					<div className='form-control w-full'>
-						<label className='label'>
+						<label className='label' htmlFor={`edit-category-${qr.id}`}>
 							<span className='label-text'>Category</span>
 						</label>
 						<select
+							id={`edit-category-${qr.id}`}
 							className='select select-bordered select-sm w-full'
 							value={editCategory}
 							onChange={(e) => onChangeCategory(e.target.value)}
 							required>
 							{Object.keys(CATEGORY_BADGE_CLASSES)
-								.sort()
+								.sort((a, b) =>
+									a
+										.replaceAll('_', ' ')
+										.localeCompare(b.replaceAll('_', ' '))
+								)
 								.map((key) => (
 									<option key={key} value={key}>
 										{key.replaceAll('_', ' ')}
@@ -345,10 +363,11 @@ export function QrCard({
 					</div>
 
 					<div className='form-control w-full'>
-						<label className='label'>
+						<label className='label' htmlFor={`edit-url-${qr.id}`}>
 							<span className='label-text'>Target URL</span>
 						</label>
 						<input
+							id={`edit-url-${qr.id}`}
 							type='url'
 							className='input input-bordered input-sm w-full'
 							value={editUrl}
@@ -377,8 +396,8 @@ export function QrCard({
 				</form>
 			) : (
 				<>
-					{!isSelecting ? (
-						<div className='w-full flex items-center justify-end gap-1'>
+					{isSelecting ? null : (
+						<div className='relative z-30 flex w-full flex-wrap items-center justify-end gap-1'>
 							<button
 								type='button'
 								className='btn btn-ghost btn-xs btn-circle'
@@ -413,35 +432,35 @@ export function QrCard({
 								showPrint={!isIosSafari()}
 							/>
 						</div>
-					) : null}
-						<div className='flex items-start m-2 w-full'>
-							<IsPublicToggle
-								isPublic={qr.isPublic ?? false}
-								onToggle={(next: boolean) => onTogglePublic(qr.id, next)}
-								disabled={isSelecting || isEditing || savingEdit}
-								id={`is-public-toggle-${qr.id}`}
-							/>
+					)}
+					<div className='relative z-30 mt-2 flex w-full items-start'>
+						<IsPublicToggle
+							isPublic={qr.isPublic ?? false}
+							onToggle={(next: boolean) => onTogglePublic(qr.id, next)}
+							disabled={isSelecting || isEditing || savingEdit}
+							id={`is-public-toggle-${qr.id}`}
+						/>
 					</div>
-					<div className='text-center w-full'>
+					<div className='pointer-events-none relative z-20 w-full max-w-full min-w-0 overflow-hidden text-center'>
 						<p
-							className='font-medium text-sm wrap-break-word min-h-5'
+							className='block min-h-5 min-w-0 max-w-full overflow-hidden text-sm font-medium wrap-anywhere'
 							aria-hidden={!qr.label}>
 							{qr.label ?? '\u00A0'}
 						</p>
 						<p
-							className='text-xs text-base-content/60 truncate w-full mt-1 mb-1'
+							className='mt-1 mb-1 w-full min-w-0 overflow-hidden text-xs text-base-content/60 wrap-anywhere'
 							title={qr.targetUrl}>
 							{qr.targetUrl}
 						</p>
-						<div className='flex items-center justify-between mt-2 w-full'>
+						<div className='mt-2 flex w-full min-w-0 max-w-full flex-col items-center gap-1 overflow-hidden sm:flex-row sm:items-center'>
 							<span
-								className={`badge badge-soft ${
+								className={`badge badge-soft max-w-full overflow-hidden text-ellipsis whitespace-nowrap sm:min-w-0 sm:flex-1 ${
 									CATEGORY_BADGE_CLASSES[qr.category] ?? 'badge-outline'
 								}`}>
 								{qr.category}
 							</span>
 
-							<span className='text-[10px] text-base-content/40'>
+							<span className='shrink-0 text-[10px] text-base-content/40 sm:ml-auto'>
 								{qr.createdAt
 									? new Date(qr.createdAt).toLocaleDateString('en-GB')
 									: '—'}

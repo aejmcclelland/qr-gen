@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { QrCode, Home, PlusCircle, List } from 'lucide-react';
-
+import { QrCode, Home, PlusCircle, List, User, LogOut } from 'lucide-react';
+import Image from 'next/image';
 import { useSession, signOut } from '@/lib/auth-client';
-import { User, LogOut } from 'lucide-react';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -32,7 +31,7 @@ export function Navbar() {
 				.join('')
 				.slice(0, 2)
 				.toUpperCase()
-		: session?.user?.email?.[0]?.toUpperCase() ?? '?';
+		: (session?.user?.email?.[0]?.toUpperCase() ?? '?');
 
 	return (
 		<header className='fixed top-4 left-0 right-0 z-40 flex justify-center px-4'>

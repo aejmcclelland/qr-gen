@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useState, type SyntheticEvent } from 'react';
 import { Toast } from '@/components/ui/Toast';
 import { QrCard } from '@/components/qr/QrCard';
 import ConfirmDeleteModal from '@/components/qr/ConfirmDeleteModal';
@@ -41,7 +41,7 @@ async function readErrorPayload(
 }
 
 type Props = {
-	initialQrs: QrClient[];
+	readonly initialQrs: QrClient[];
 	activeCategories: string[];
 };
 
@@ -305,7 +305,7 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 	}, [selectedIds]);
 
 	const handleEditSubmit = async (
-		e: FormEvent<HTMLFormElement>,
+		e: SyntheticEvent<HTMLFormElement>,
 		id: string
 	) => {
 		e.preventDefault();
@@ -379,7 +379,7 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 				message: next ? 'Public QR page enabled.' : 'Public QR page disabled.',
 				variant: 'success',
 			});
-		} catch (e) {
+		} catch {
 			// rollback if failed
 			setQrs((prev) =>
 				prev.map((q) => (q.id === id ? { ...q, isPublic: !next } : q))
@@ -420,33 +420,34 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 				) : null}
 			</div>
 
-			<div className='grid gap-6 sm:grid-cols-2 md:grid-cols-3 pb-24'>
+			<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 pb-24 min-w-0'>
 				{visibleQrs.map((qr) => (
-					<QrCard
-						key={qr.id}
-						qr={qr}
-						isEditing={editingId === qr.id}
-						editLabel={editLabel}
-						editUrl={editUrl}
-						editCategory={editCategory}
-						savingEdit={savingEdit}
-						isSelecting={isSelecting}
-						isSelected={selectedIds.has(qr.id)}
-						onToggleSelect={() => toggleSelected(qr.id)}
-						onEnterSelectMode={() => startSelecting(qr.id)}
-						onStartEdit={() => startEdit(qr)}
-						onTogglePublic={togglePublic}
-						onCancelEdit={cancelEdit}
-						onChangeLabel={setEditLabel}
-						onChangeUrl={setEditUrl}
-						onChangeCategory={setEditCategory}
-							onSubmitEdit={(e: FormEvent<HTMLFormElement>) =>
+					<div key={qr.id} className='min-w-0 w-full'>
+						<QrCard
+							qr={qr}
+							isEditing={editingId === qr.id}
+							editLabel={editLabel}
+							editUrl={editUrl}
+							editCategory={editCategory}
+							savingEdit={savingEdit}
+							isSelecting={isSelecting}
+							isSelected={selectedIds.has(qr.id)}
+							onToggleSelect={() => toggleSelected(qr.id)}
+							onEnterSelectMode={() => startSelecting(qr.id)}
+							onStartEdit={() => startEdit(qr)}
+							onTogglePublic={togglePublic}
+							onCancelEdit={cancelEdit}
+							onChangeLabel={setEditLabel}
+							onChangeUrl={setEditUrl}
+							onChangeCategory={setEditCategory}
+							onSubmitEdit={(e: SyntheticEvent<HTMLFormElement>) =>
 								handleEditSubmit(e, qr.id)
 							}
 							onDelete={() => handleDelete(qr.id)}
 						/>
-					))}
-				</div>
+					</div>
+				))}
+			</div>
 			<ConfirmDeleteModal
 				open={confirmOpen}
 				count={selectedIds.size}

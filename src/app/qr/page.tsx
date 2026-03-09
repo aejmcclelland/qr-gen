@@ -25,8 +25,8 @@ export default async function QrListPage() {
 	const qrs: QrClient[] = mapQrsToClient(dbQrs);
 
 	return (
-		<div className='min-h-screen bg-base-200'>
-			<div className='max-w-5xl mx-auto py-10 px-4 pb-32'>
+		<div className='min-h-screen bg-base-200 overflow-x-hidden'>
+			<div className='mx-auto max-w-5xl min-w-0 px-4 py-10 pb-32'>
 				<QrListSection initialQrs={qrs} />
 			</div>
 		</div>

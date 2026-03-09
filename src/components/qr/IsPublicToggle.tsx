@@ -2,10 +2,10 @@
 import React from 'react';
 
 type IsPublicToggleProps = {
-	isPublic: boolean;
-	onToggle: (newValue: boolean) => void;
-	disabled?: boolean;
-	id?: string;
+	readonly isPublic: boolean;
+	readonly onToggle: (newValue: boolean) => void;
+	readonly disabled?: boolean;
+	readonly id?: string;
 };
 
 export function IsPublicToggle({
