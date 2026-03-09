@@ -83,7 +83,7 @@ export function QrGeneratorCard() {
 		// Logged-in users are always allowed
 		if (session) return true;
 
-		const normalized = nextValue.trim().toLowerCase();
+		const normalized = nextValue.trim();
 		const limit = checkGuestQrLimit(normalized);
 
 		if (!limit.allowed) {
