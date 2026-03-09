@@ -7,7 +7,15 @@ import { getAuthedUserId } from '@/lib/getAuthedUserId';
 const MAX_QRS = 100;
 
 function normalizeTargetUrl(input?: string) {
-	return (input ?? '').trim().toLowerCase();
+	const value = (input ?? '').trim();
+
+	if (!value) return '';
+
+	try {
+		return new URL(value).toString();
+	} catch {
+		return '';
+	}
 }
 
 // GET /api/qrs - list QR codes for the current user
