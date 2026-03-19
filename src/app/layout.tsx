@@ -6,7 +6,7 @@ import { Analytics } from '@vercel/analytics/next';
 export default function DashboardLayout({
 	children,
 }: {
-	children: React.ReactNode;
+	readonly children: React.ReactNode;
 }) {
 	return (
 		<html lang='en' data-theme='dracula'>

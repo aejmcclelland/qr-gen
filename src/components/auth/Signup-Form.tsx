@@ -1,8 +1,9 @@
 'use client';
 
 import { signUp, signIn } from '@/lib/auth-client';
+import Link from 'next/link';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type BetterAuthResponse = {
 	error?: string | { message?: string } | null;
@@ -10,6 +11,8 @@ type BetterAuthResponse = {
 
 export default function SignupForm() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const callbackURL = searchParams.get('callbackURL') ?? '/dashboard';
 	const [error, setError] = useState<string | null>(null);
 
 	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -25,7 +28,7 @@ export default function SignupForm() {
 			email,
 			password,
 			name,
-			callbackURL: '/',
+			callbackURL,
 		});
 
 		const result = rawResult as BetterAuthResponse;
@@ -39,7 +42,7 @@ export default function SignupForm() {
 			return;
 		}
 
-		router.push('/');
+		router.push(callbackURL);
 	}
 
 	async function handleGoogleSignup() {
@@ -47,7 +50,8 @@ export default function SignupForm() {
 
 		const rawResult = await signIn.social({
 			provider: 'google',
-			callbackURL: '/',
+			callbackURL,
+			newUserCallbackURL: callbackURL,
 		});
 
 		const result = rawResult as BetterAuthResponse;
@@ -106,9 +110,11 @@ export default function SignupForm() {
 					Continue with Google
 				</button>
 
-				<a href='/login' className='link link-primary block text-center mt-4'>
+				<Link
+					href={`/login?callbackURL=${encodeURIComponent(callbackURL)}`}
+					className='link link-primary block text-center mt-4'>
 					Already have an account? Log in
-				</a>
+				</Link>
 			</fieldset>
 		</form>
 	);

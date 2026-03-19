@@ -3,5 +3,17 @@
 @import 'tw-animate-css';
 
 @plugin "daisyui" {
-	themes: light --default, dracula --prefersdark, cupcake;
+	themes:
+		light --default,
+		dracula --prefersdark,
+		cupcake;
+}
+
+@plugin "daisyui/theme" {
+	name: 'dracula';
+	prefersdark: true;
+	color-scheme: dark;
+
+	--color-primary: #f91ebe;
+	--color-primary-content: #1f1b24;
 }

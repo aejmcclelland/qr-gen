@@ -23,6 +23,10 @@ export function Navbar() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { data: session } = useSession();
+	const signInHref =
+		pathname && pathname !== '/' && pathname !== '/login' && pathname !== '/signup'
+			? `/login?callbackURL=${encodeURIComponent(pathname)}`
+			: '/login';
 
 	const initials = session?.user?.name
 		? session.user.name
@@ -42,7 +46,7 @@ export function Navbar() {
           rounded-full
           shadow-lg
           px-4
-          py-2
+          py-1.5
           flex
           items-center
           gap-4
@@ -55,16 +59,23 @@ export function Navbar() {
 					<Link
 						href='/'
 						className='
-              flex items-center gap-1
+              flex items-center gap-2
               rounded-full px-2 py-1
               hover:bg-base-200
-			  
               transition-colors
             '>
-						<span className='inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10'>
-							<QrCode className='h-4 w-4 text-primary' />
+						<span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10'>
+							<Image
+								src='/qrpilot-app/portfolio/jumbo-qrpilot.svg'
+								alt='QrPilot logo'
+								width={48}
+								height={48}
+								className='h-14 w-14 object-contain'
+							/>
 						</span>
-						<span className='font-semibold text-sm sm:text-base'>QrPilot</span>
+						<span className='font-semibold text-sm sm:text-base leading-none'>
+							QrPilot
+						</span>
 					</Link>
 				</div>
 
@@ -155,9 +166,7 @@ export function Navbar() {
 							</DropdownMenuContent>
 						</DropdownMenu>
 					) : (
-						<Link
-							href={`/login?callbackURL=${encodeURIComponent(pathname || '/')}`}
-							className='btn btn-primary btn-xs rounded-full px-3'>
+						<Link href={signInHref} className='btn btn-primary btn-xs rounded-full px-3'>
 							Sign in
 						</Link>
 					)}

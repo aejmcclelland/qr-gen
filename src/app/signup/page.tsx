@@ -1,4 +1,5 @@
 // app/signup/page.tsx
+import { Suspense } from 'react';
 import SignupForm from '@/components/auth/Signup-Form';
 
 export default function SignupPage() {
@@ -8,7 +9,10 @@ export default function SignupPage() {
 				<h2 className='text-2xl font-bold text-center mb-6'>
 					Create an account
 				</h2>
-				<SignupForm />
+				<Suspense
+					fallback={<div className='flex justify-center'>Loading...</div>}>
+					<SignupForm />
+				</Suspense>
 			</div>
 		</div>
 	);

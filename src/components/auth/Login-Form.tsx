@@ -12,7 +12,7 @@ type BetterAuthResponse = {
 export default function LoginForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const callbackURL = searchParams.get('callbackURL') ?? '/';
+	const callbackURL = searchParams.get('callbackURL') ?? '/dashboard';
 	const [error, setError] = useState<string | null>(null);
 
 	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -51,6 +51,7 @@ export default function LoginForm() {
 		const rawResult = await signIn.social({
 			provider: 'google',
 			callbackURL,
+			newUserCallbackURL: callbackURL,
 		});
 
 		const result = rawResult as BetterAuthResponse;
@@ -89,8 +90,7 @@ export default function LoginForm() {
 				<div className='flex justify-end mt-1'>
 					<Link
 						href={`/forgot-password?callbackURL=${encodeURIComponent(callbackURL)}`}
-						className='link link-hover text-sm'
-					>
+						className='link link-hover text-sm'>
 						Forgot password?
 					</Link>
 				</div>
@@ -108,7 +108,9 @@ export default function LoginForm() {
 					Continue with Google
 				</button>
 
-				<Link href='/signup' className='link link-primary block text-center mt-4'>
+				<Link
+					href={`/signup?callbackURL=${encodeURIComponent(callbackURL)}`}
+					className='link link-primary block text-center mt-4'>
 					Need an account? Sign up
 				</Link>
 			</fieldset>
