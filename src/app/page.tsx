@@ -18,42 +18,72 @@ const previewItems = [
 	},
 ] as const;
 
-const features = [
+const libraryGroups = ['Business', 'Personal', 'Work'] as const;
+
+const featureCards = [
 	{
-		title: 'Generate',
+		kicker: 'Create fast',
+		title: 'Start useful QR codes without friction',
 		description:
-			'Create QR codes quickly for websites, menus, contact pages, forms, and more.',
+			'Make QR codes quickly for menus, forms, review links, contact pages and everyday sharing.',
 	},
 	{
-		title: 'Organise',
+		kicker: 'Keep organised',
+		title: 'Store labels and categories together',
 		description:
-			'Group your QR codes by category so they stay easy to find and manage.',
+			'Keep your QR library tidy so repeat-use codes stay easy to browse and manage.',
 	},
 	{
-		title: 'Manage',
+		kicker: 'Reuse anytime',
+		title: 'Bring saved codes back when you need them',
 		description:
-			'Keep your codes stored in one place instead of recreating them every time.',
+			'Open existing QR codes again for printing, sharing, updating or reusing across different jobs.',
 	},
 	{
-		title: 'Reuse',
+		kicker: 'Stay ready',
+		title: 'Avoid rebuilding the same QR twice',
 		description:
-			'Come back to saved QR codes whenever you need to print, share, or update your workflow.',
+			'Keep recurring business, event and personal QR codes in one place instead of starting over.',
 	},
 ] as const;
 
 const useCases = [
-	'Menus and table links',
-	'Review requests',
-	'Wi-Fi sharing',
-	'Contact and profile links',
-	'Events and handouts',
-	'Portfolio and business materials',
+	{
+		marker: 'MN',
+		title: 'Menus and table links',
+		description: 'Keep service-ready menu QR codes available for reprints and table updates.',
+	},
+	{
+		marker: 'RV',
+		title: 'Review requests',
+		description: 'Save review links once and reuse them across signs, cards and follow-up materials.',
+	},
+	{
+		marker: 'WF',
+		title: 'Wi-Fi sharing',
+		description: 'Store home, guest or office Wi-Fi QR codes so they are always easy to share again.',
+	},
+	{
+		marker: 'CT',
+		title: 'Contact and profile links',
+		description: 'Keep profile, vCard and contact-page QR codes ready for networking and handouts.',
+	},
+	{
+		marker: 'EV',
+		title: 'Events and handouts',
+		description: 'Reuse QR codes for schedules, check-ins, forms and printed event materials.',
+	},
+	{
+		marker: 'PF',
+		title: 'Portfolio and business materials',
+		description: 'Keep business links, portfolios and landing pages organised for repeat use.',
+	},
 ] as const;
 
 const valuePoints = [
-	'Create in seconds',
-	'Organise by purpose',
-	'Reuse anytime',
+	'Save to your library',
+	'Group by purpose',
+	'Reopen without rebuilding',
 ] as const;
 
 function MockQrSquare() {
@@ -104,7 +134,7 @@ function MockQrSquare() {
 export default function HomePage() {
 	return (
 		<div className='min-h-screen bg-base-200'>
-			<div className='mx-auto flex max-w-6xl flex-col gap-20 px-4 py-12 sm:px-6 sm:py-16 lg:gap-24 lg:px-8 lg:py-24'>
+			<div className='mx-auto flex max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16 lg:gap-20 lg:px-8 lg:py-24'>
 				<section className='grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16'>
 					<div className='space-y-8'>
 						<div className='flex items-center gap-3'>
@@ -115,21 +145,20 @@ export default function HomePage() {
 								height={44}
 								className='h-11 w-11 rounded-xl object-contain'
 							/>
-							<div>
-								<p className='text-sm font-medium uppercase tracking-[0.2em] text-base-content/60'>
-									QrPilot
-								</p>
-							</div>
+							<p className='text-sm font-medium uppercase tracking-[0.2em] text-base-content/60'>
+								QrPilot
+							</p>
 						</div>
 
 						<div className='space-y-4'>
 							<h1 className='max-w-2xl text-4xl font-bold tracking-tight text-base-content sm:text-5xl lg:text-6xl'>
-								Generate, organise and manage QR codes in one place
+								Build your QR code library, not just one-off codes
 							</h1>
 							<p className='max-w-2xl text-base leading-8 text-base-content/70 sm:text-lg'>
-								QrPilot helps you create QR codes, keep them organised,
-								and reuse them whenever you need them &mdash; whether for
-								business, events, menus, links, or everyday sharing.
+								Most QR tools stop once the code is made. QrPilot helps you
+								save each QR, keep it organised by purpose, and bring it back
+								whenever you need menus, review links, Wi-Fi access, event
+								handouts, business pages or portfolio links.
 							</p>
 						</div>
 
@@ -137,8 +166,8 @@ export default function HomePage() {
 							<Link href='/qr/new' className='btn btn-primary btn-lg'>
 								Generate a QR Code
 							</Link>
-							<Link href='/qr' className='btn btn-outline btn-lg'>
-								View Saved QR Codes
+							<Link href='/#why-qrpilot' className='btn btn-outline btn-lg'>
+								See how QrPilot works
 							</Link>
 						</div>
 
@@ -154,7 +183,7 @@ export default function HomePage() {
 						</div>
 					</div>
 
-					<div className='w-full'>
+					<div id='library-preview' className='w-full'>
 						<div className='card border border-base-content/10 bg-base-100 shadow-2xl shadow-black/20'>
 							<div className='card-body gap-6 p-5 sm:p-6'>
 								<div className='flex items-center justify-between gap-4'>
@@ -162,9 +191,9 @@ export default function HomePage() {
 										<p className='text-sm font-semibold text-base-content'>
 											QR library preview
 										</p>
-										<p className='text-sm text-base-content/60'>
-											See how saved QR codes can be organised and reused in
-											QrPilot.
+										<p className='text-sm leading-6 text-base-content/60'>
+											Saved codes stay organised by purpose and ready for quick
+											access.
 										</p>
 									</div>
 									<span className='badge badge-primary badge-outline'>
@@ -196,57 +225,72 @@ export default function HomePage() {
 									))}
 								</div>
 
-								<p className='text-sm text-base-content/60'>
-									Log in to view and manage your own saved QR codes.
-								</p>
-
 								<div className='rounded-2xl border border-base-content/10 bg-base-200/60 p-4'>
-									<div className='flex items-center justify-between gap-3'>
-										<div>
-											<p className='text-sm font-medium text-base-content'>
-												Keep your QR library tidy
-											</p>
-											<p className='text-sm text-base-content/60'>
-												Sort by purpose and find what you need quickly.
-											</p>
-										</div>
-										<div className='stats border border-base-content/10 bg-base-100 shadow-sm'>
-											<div className='stat px-4 py-3'>
-												<div className='stat-title text-xs'>Categories</div>
-												<div className='stat-value text-2xl text-primary'>
-													3
-												</div>
+									<div className='space-y-3'>
+										<div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
+											<div>
+												<p className='text-sm font-medium text-base-content'>
+													Quick access beats starting over
+												</p>
+												<p className='text-sm leading-6 text-base-content/60'>
+													Keep repeat-use QR codes labelled, grouped and ready to
+													open again.
+												</p>
 											</div>
+											<span className='badge badge-primary badge-outline whitespace-nowrap'>
+												3 categories
+											</span>
+										</div>
+
+										<div className='flex flex-wrap gap-2'>
+											{libraryGroups.map((group) => (
+												<span
+													key={group}
+													className='badge badge-neutral badge-sm border-base-content/10'
+												>
+													{group}
+												</span>
+											))}
 										</div>
 									</div>
 								</div>
+
+								<p className='text-sm text-base-content/60'>
+									Log in to view and manage your own saved QR codes.
+								</p>
 							</div>
 						</div>
 					</div>
 				</section>
 
-				<section className='space-y-8'>
-					<div className='max-w-2xl space-y-3'>
+				<section
+					id='why-qrpilot'
+					className='grid gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-start lg:gap-12'
+				>
+					<div className='max-w-xl space-y-4'>
+						<p className='text-sm font-medium uppercase tracking-[0.18em] text-base-content/55'>
+							Why QrPilot
+						</p>
 						<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
-							Everything you need to work with QR codes
+							Useful when a basic QR generator is not enough
 						</h2>
 						<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
-							Built for people who need more than a one-off QR generator.
+							If you only need one code once, most tools will do. QrPilot is
+							for the moments when the same QR needs to stay easy to find,
+							share, print and reuse over time.
 						</p>
 					</div>
 
-					<div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
-						{features.map((feature) => (
+					<div className='grid gap-4 sm:grid-cols-2'>
+						{featureCards.map((feature) => (
 							<div
 								key={feature.title}
 								className='card border border-base-content/10 bg-base-100 shadow-lg shadow-black/10'
 							>
 								<div className='card-body gap-4'>
-									<div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary'>
-										<span className='text-lg font-semibold'>
-											{feature.title.slice(0, 1)}
-										</span>
-									</div>
+									<span className='badge badge-primary badge-outline w-fit'>
+										{feature.kicker}
+									</span>
 									<div className='space-y-2'>
 										<h3 className='text-xl font-semibold text-base-content'>
 											{feature.title}
@@ -261,26 +305,43 @@ export default function HomePage() {
 					</div>
 				</section>
 
-				<section className='space-y-8'>
-					<div className='max-w-3xl space-y-3'>
-						<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
-							Made for real-world use
-						</h2>
-						<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
-							QrPilot is useful anywhere you need quick access, repeat
-							sharing, or organised QR code management.
-						</p>
-					</div>
+				<section className='rounded-[2rem] border border-base-content/10 bg-base-100 px-6 py-8 shadow-xl shadow-black/10 sm:px-8 sm:py-10 lg:px-10'>
+					<div className='grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start'>
+						<div className='max-w-xl space-y-4'>
+							<p className='text-sm font-medium uppercase tracking-[0.18em] text-base-content/55'>
+								Real-world use
+							</p>
+							<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
+								Made for repeated, real-world QR work
+							</h2>
+							<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
+								Use QrPilot anywhere the same QR needs to stay organised, easy
+								to reach and ready to use again.
+							</p>
+						</div>
 
-					<div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
-						{useCases.map((useCase) => (
-							<div
-								key={useCase}
-								className='rounded-2xl border border-base-content/10 bg-base-100 px-5 py-5 text-base font-medium text-base-content shadow-md shadow-black/10'
-							>
-								{useCase}
-							</div>
-						))}
+						<div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+							{useCases.map((useCase) => (
+								<div
+									key={useCase.title}
+									className='rounded-2xl border border-base-content/10 bg-base-200/45 p-4'
+								>
+									<div className='flex items-start gap-4'>
+										<div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary'>
+											{useCase.marker}
+										</div>
+										<div className='space-y-1'>
+											<h3 className='text-base font-semibold text-base-content'>
+												{useCase.title}
+											</h3>
+											<p className='text-sm leading-6 text-base-content/65'>
+												{useCase.description}
+											</p>
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
 					</div>
 				</section>
 
@@ -288,11 +349,11 @@ export default function HomePage() {
 					<div className='flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between'>
 						<div className='max-w-2xl space-y-3'>
 							<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
-								Start building your QR library today
+								Start your QR library
 							</h2>
 							<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
-								Create your first QR code, keep it organised, and make it
-								easier to reuse whenever you need it.
+								Create a code once, keep it organised, and bring it back when
+								you need it.
 							</p>
 						</div>
 
@@ -301,7 +362,7 @@ export default function HomePage() {
 								Generate a QR Code
 							</Link>
 							<Link href='/qr' className='btn btn-outline btn-lg'>
-								View Saved QR Codes
+								Open the QR Library
 							</Link>
 						</div>
 					</div>

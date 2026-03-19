@@ -36,7 +36,10 @@ export function Navbar() {
 	const isLoggedIn = Boolean(session?.user);
 	const brandHref = isLoggedIn ? '/dashboard' : '/';
 	const signInHref =
-		pathname && pathname !== '/' && pathname !== '/login' && pathname !== '/signup'
+		pathname &&
+		pathname !== '/' &&
+		pathname !== '/login' &&
+		pathname !== '/signup'
 			? `/login?callbackURL=${encodeURIComponent(pathname)}`
 			: '/login';
 	const navItems: NavItem[] = isLoggedIn
@@ -154,7 +157,7 @@ export function Navbar() {
 									</span>
 								</button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align='end' className='w-52 bg-base-300'>
+							<DropdownMenuContent align='end' className='w-52 bg-base-100'>
 								<DropdownMenuLabel>Signed in</DropdownMenuLabel>
 								{session.user.email && (
 									<div className='px-2 pb-2 text-xs text-base-content/70 break-all'>
@@ -188,7 +191,9 @@ export function Navbar() {
 							</DropdownMenuContent>
 						</DropdownMenu>
 					) : (
-						<Link href={signInHref} className='btn btn-primary btn-xs rounded-full px-3'>
+						<Link
+							href={signInHref}
+							className='btn btn-primary btn-xs rounded-full px-3'>
 							Sign in
 						</Link>
 					)}
