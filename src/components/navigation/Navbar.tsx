@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { QrCode, Home, PlusCircle, List, User, LogOut } from 'lucide-react';
+import {
+	QrCode,
+	PlusCircle,
+	List,
+	User,
+	LogOut,
+	LayoutDashboard,
+} from 'lucide-react';
 import Image from 'next/image';
 import { useSession, signOut } from '@/lib/auth-client';
 import {
@@ -13,20 +20,54 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { LucideIcon } from 'lucide-react';
 
-function isActive(pathname: string, href: string) {
-	if (href === '/') return pathname === '/';
-	return pathname.startsWith(href);
-}
+type NavItem = {
+	href: string;
+	label: string;
+	icon: LucideIcon;
+	isActive: (pathname: string) => boolean;
+};
 
 export function Navbar() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { data: session } = useSession();
+	const isLoggedIn = Boolean(session?.user);
+	const brandHref = isLoggedIn ? '/dashboard' : '/';
 	const signInHref =
 		pathname && pathname !== '/' && pathname !== '/login' && pathname !== '/signup'
 			? `/login?callbackURL=${encodeURIComponent(pathname)}`
 			: '/login';
+	const navItems: NavItem[] = isLoggedIn
+		? [
+				{
+					href: '/dashboard',
+					label: 'Dashboard',
+					icon: LayoutDashboard,
+					isActive: (currentPath) => currentPath === '/dashboard',
+				},
+				{
+					href: '/qr/new',
+					label: 'New QR',
+					icon: PlusCircle,
+					isActive: (currentPath) => currentPath === '/qr/new',
+				},
+				{
+					href: '/qr',
+					label: 'My QRs',
+					icon: List,
+					isActive: (currentPath) => currentPath === '/qr',
+				},
+			]
+		: [
+				{
+					href: '/qr/new',
+					label: 'New QR',
+					icon: PlusCircle,
+					isActive: (currentPath) => currentPath === '/qr/new',
+				},
+			];
 
 	const initials = session?.user?.name
 		? session.user.name
@@ -54,10 +95,9 @@ export function Navbar() {
           w-full
           max-w-3xl
         '>
-				{/* Brand (Left) */}
 				<div className='flex-none'>
 					<Link
-						href='/'
+						href={brandHref}
 						className='
               flex items-center gap-2
               rounded-full px-2 py-1
@@ -79,46 +119,28 @@ export function Navbar() {
 					</Link>
 				</div>
 
-				{/* Center Navigation */}
 				<div className='flex-1 flex justify-center'>
 					<div className='flex items-center gap-2'>
-						<Link
-							href='/'
-							className={`
-                btn btn-ghost btn-xs rounded-full px-3
-                flex items-center gap-1
-                ${isActive(pathname, '/') ? 'bg-base-200' : ''}
-              `}>
-							<Home className='h-3 w-3' />
-							<span className='hidden sm:inline text-xs'>Home</span>
-						</Link>
+						{navItems.map((item) => {
+							const Icon = item.icon;
 
-						<Link
-							href='/qr/new'
-							className={`
+							return (
+								<Link
+									key={item.href}
+									href={item.href}
+									className={`
                 btn btn-ghost btn-xs rounded-full px-3
                 flex items-center gap-1
-                ${isActive(pathname, '/qr/new') ? 'bg-base-200' : ''}
+                ${item.isActive(pathname) ? 'bg-base-200' : ''}
               `}>
-							<PlusCircle className='h-3 w-3' />
-							<span className='hidden sm:inline text-xs'>New QR</span>
-						</Link>
-
-						<Link
-							href='/qr'
-							className={`
-                btn btn-ghost btn-xs rounded-full px-3
-                flex items-center gap-1
-                ${isActive(pathname, '/qr') ? 'bg-base-200' : ''}
-              `}>
-							<List className='h-3 w-3' />
-							<span className='hidden sm:inline text-xs'>My QRs</span>
-						</Link>
+									<Icon className='h-3 w-3' />
+									<span className='hidden sm:inline text-xs'>{item.label}</span>
+								</Link>
+							);
+						})}
 					</div>
 				</div>
 
-				{/* Auth Area (Right) */}
-				{/* Auth Area (Right) */}
 				<div className='flex-none flex items-center gap-2'>
 					{session?.user ? (
 						<DropdownMenu>
