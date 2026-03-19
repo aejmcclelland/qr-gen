@@ -47,6 +47,27 @@ const featureCards = [
 	},
 ] as const;
 
+const howItWorksSteps = [
+	{
+		step: '01',
+		title: 'Create',
+		description:
+			'Generate the QR you need for a menu, link, form, handout or everyday task.',
+	},
+	{
+		step: '02',
+		title: 'Save to library',
+		description:
+			'Keep it labelled and grouped by purpose so it stays easy to find later.',
+	},
+	{
+		step: '03',
+		title: 'Reuse anytime',
+		description:
+			'Open it again when you need to print, share, update or bring it back into use.',
+	},
+] as const;
+
 const useCases = [
 	{
 		marker: 'MN',
@@ -81,9 +102,9 @@ const useCases = [
 ] as const;
 
 const valuePoints = [
-	'Save to your library',
-	'Group by purpose',
-	'Reopen without rebuilding',
+	'Save the first version',
+	'Find it by purpose',
+	'Bring it back quickly',
 ] as const;
 
 function MockQrSquare() {
@@ -134,7 +155,7 @@ function MockQrSquare() {
 export default function HomePage() {
 	return (
 		<div className='min-h-screen bg-base-200'>
-			<div className='mx-auto flex max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16 lg:gap-20 lg:px-8 lg:py-24'>
+			<div className='mx-auto flex max-w-6xl flex-col gap-14 px-4 py-12 sm:px-6 sm:py-16 lg:gap-16 lg:px-8 lg:py-24'>
 				<section className='grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16'>
 					<div className='space-y-8'>
 						<div className='flex items-center gap-3'>
@@ -155,10 +176,10 @@ export default function HomePage() {
 								Build your QR code library, not just one-off codes
 							</h1>
 							<p className='max-w-2xl text-base leading-8 text-base-content/70 sm:text-lg'>
-								Most QR tools stop once the code is made. QrPilot helps you
-								save each QR, keep it organised by purpose, and bring it back
-								whenever you need menus, review links, Wi-Fi access, event
-								handouts, business pages or portfolio links.
+								Most QR tools end at generation. QrPilot is built for what
+								happens next: saving the code, organising it by purpose, and
+								pulling it back up when menus, review links, Wi-Fi access,
+								event handouts or business pages need to go live again.
 							</p>
 						</div>
 
@@ -166,7 +187,9 @@ export default function HomePage() {
 							<Link href='/qr/new' className='btn btn-primary btn-lg'>
 								Generate a QR Code
 							</Link>
-							<Link href='/#why-qrpilot' className='btn btn-outline btn-lg'>
+							<Link
+								href='/#how-qrpilot-works'
+								className='btn btn-outline btn-lg'>
 								See how QrPilot works
 							</Link>
 						</div>
@@ -192,8 +215,8 @@ export default function HomePage() {
 											QR library preview
 										</p>
 										<p className='text-sm leading-6 text-base-content/60'>
-											Saved codes stay organised by purpose and ready for quick
-											access.
+											A saved library keeps repeat-use codes close at hand
+											instead of lost in the next tab or document.
 										</p>
 									</div>
 									<span className='badge badge-primary badge-outline'>
@@ -230,11 +253,11 @@ export default function HomePage() {
 										<div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
 											<div>
 												<p className='text-sm font-medium text-base-content'>
-													Quick access beats starting over
+													Built for repeat-use work
 												</p>
 												<p className='text-sm leading-6 text-base-content/60'>
-													Keep repeat-use QR codes labelled, grouped and ready to
-													open again.
+													Keep useful QR codes grouped, named and ready for the
+													next print run, update or handout.
 												</p>
 											</div>
 											<span className='badge badge-primary badge-outline whitespace-nowrap'>
@@ -264,20 +287,60 @@ export default function HomePage() {
 				</section>
 
 				<section
+					id='how-qrpilot-works'
+					className='grid gap-8 border-y border-base-content/10 py-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start lg:gap-12'
+				>
+					<div className='max-w-xl space-y-4'>
+						<p className='text-sm font-medium uppercase tracking-[0.18em] text-base-content/55'>
+							How QrPilot works
+						</p>
+						<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
+							Three steps from first code to repeat use
+						</h2>
+						<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
+							The process stays simple, but the useful part is what comes
+							after creation: keeping the QR somewhere you can actually come
+							back to.
+						</p>
+					</div>
+
+					<div className='grid gap-5 sm:grid-cols-3'>
+						{howItWorksSteps.map((step) => (
+							<div
+								key={step.title}
+								className='border-t border-base-content/10 pt-4'
+							>
+								<div className='space-y-3'>
+									<p className='text-xs font-medium uppercase tracking-[0.18em] text-base-content/45'>
+										{step.step}
+									</p>
+									<h3 className='text-lg font-semibold text-base-content'>
+										{step.title}
+									</h3>
+									<p className='text-sm leading-7 text-base-content/65'>
+										{step.description}
+									</p>
+								</div>
+							</div>
+						))}
+					</div>
+				</section>
+
+				<section
 					id='why-qrpilot'
 					className='grid gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-start lg:gap-12'
 				>
 					<div className='max-w-xl space-y-4'>
 						<p className='text-sm font-medium uppercase tracking-[0.18em] text-base-content/55'>
-							Why QrPilot
+							Beyond generation
 						</p>
 						<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
-							Useful when a basic QR generator is not enough
+							The useful part starts after the first QR
 						</h2>
 						<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
-							If you only need one code once, most tools will do. QrPilot is
-							for the moments when the same QR needs to stay easy to find,
-							share, print and reuse over time.
+							Generating the code is the quick part. The time-saving part is
+							having it labelled, stored and ready when the same job comes
+							round again.
 						</p>
 					</div>
 
@@ -309,14 +372,14 @@ export default function HomePage() {
 					<div className='grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start'>
 						<div className='max-w-xl space-y-4'>
 							<p className='text-sm font-medium uppercase tracking-[0.18em] text-base-content/55'>
-								Real-world use
+								Where it earns its place
 							</p>
 							<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
-								Made for repeated, real-world QR work
+								Useful anywhere the same QR needs to come back again
 							</h2>
 							<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
-								Use QrPilot anywhere the same QR needs to stay organised, easy
-								to reach and ready to use again.
+								Menus, handouts, Wi-Fi cards and review prompts all get easier
+								when the QR already exists and stays organised.
 							</p>
 						</div>
 
@@ -348,12 +411,15 @@ export default function HomePage() {
 				<section className='rounded-[2rem] border border-base-content/10 bg-base-100 px-6 py-10 shadow-2xl shadow-black/15 sm:px-8 lg:px-12 lg:py-14'>
 					<div className='flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between'>
 						<div className='max-w-2xl space-y-3'>
+							<p className='text-sm font-medium uppercase tracking-[0.18em] text-base-content/55'>
+								Keep it ready
+							</p>
 							<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
 								Start your QR library
 							</h2>
 							<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
 								Create a code once, keep it organised, and bring it back when
-								you need it.
+								you need it again.
 							</p>
 						</div>
 
