@@ -109,10 +109,10 @@ export function Navbar() {
             '>
 						<span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10'>
 							<Image
-								src='/qrpilot-app/portfolio/jumbo-qrpilot.svg'
+								src='/qrpilot-app/portfolio/jumbo-qrpilot-small.svg'
 								alt='QrPilot logo'
-								width={48}
-								height={48}
+								width={64}
+								height={64}
 								className='h-14 w-14 object-contain'
 							/>
 						</span>
