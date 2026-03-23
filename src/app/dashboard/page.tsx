@@ -67,7 +67,7 @@ export default async function DashboardPage() {
 	return (
 		<div className='min-h-screen bg-base-200 overflow-x-hidden'>
 			<div className='mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8 pb-24 sm:px-6 lg:gap-10 lg:px-8 lg:py-10 lg:pb-24'>
-				<section className='rounded-[2rem] border border-base-content/10 bg-base-100 px-6 py-8 shadow-xl shadow-black/10 sm:px-8'>
+				<section className='rounded-4xl border border-base-content/10 bg-base-100 px-6 py-8 shadow-xl shadow-black/10 sm:px-8'>
 					<div className='max-w-3xl space-y-5'>
 						<div className='space-y-2'>
 							<p className='text-sm font-medium uppercase tracking-[0.2em] text-base-content/55'>
@@ -187,8 +187,8 @@ export default async function DashboardPage() {
 												No QR codes yet
 											</h3>
 											<p className='text-sm leading-7 text-base-content/65'>
-												You have not created any QR codes yet. Start by
-												creating your first one.
+												You have not created any QR codes yet. Start by creating
+												your first one.
 											</p>
 										</div>
 

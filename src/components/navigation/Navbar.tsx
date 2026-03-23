@@ -107,7 +107,7 @@ export function Navbar() {
               hover:bg-base-200
               transition-colors
             '>
-						<span className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10'>
+						<span className='inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10'>
 							<Image
 								src='/qrpilot-app/portfolio/jumbo-qrpilot-small.svg'
 								alt='QrPilot logo'
@@ -131,12 +131,14 @@ export function Navbar() {
 								<Link
 									key={item.href}
 									href={item.href}
+									title={item.label}
+									aria-label={item.label}
 									className={`
                 btn btn-ghost btn-xs rounded-full px-3
                 flex items-center gap-1
                 ${item.isActive(pathname) ? 'bg-base-200' : ''}
               `}>
-									<Icon className='h-3 w-3' />
+									<Icon className='h-6 w-6' />
 									<span className='hidden sm:inline text-xs'>{item.label}</span>
 								</Link>
 							);
