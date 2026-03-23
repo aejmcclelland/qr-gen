@@ -157,11 +157,11 @@ export default async function DashboardPage() {
 												key={qr.id}
 												className='rounded-2xl border border-base-content/10 bg-base-200/50 px-4 py-4 transition-colors hover:border-base-content/20'>
 												<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
-													<div className='min-w-0 space-y-2'>
-														<p className='truncate text-base font-medium text-base-content'>
+													<div className='min-w-0 max-w-full space-y-2 overflow-hidden'>
+														<p className='block max-w-full truncate text-base font-medium text-base-content'>
 															{qr.label?.trim() || 'Untitled QR Code'}
 														</p>
-														<p className='truncate text-sm text-base-content/60'>
+														<p className='block max-w-full text-sm break-all text-base-content/60 sm:truncate'>
 															{formatDisplayValue(qr.targetUrl)}
 														</p>
 													</div>

@@ -51,38 +51,22 @@ const useCases = [
 	{
 		marker: 'MN',
 		title: 'Menus and table links',
-		description:
-			'Keep service-ready menu QR codes available for reprints and table updates.',
+		description: 'Keep menu links ready for reprints and table updates.',
 	},
 	{
 		marker: 'RV',
 		title: 'Review requests',
-		description:
-			'Save review links once and reuse them across signs, cards and follow-up materials.',
+		description: 'Reuse the same review link across signs, cards and receipts.',
 	},
 	{
 		marker: 'WF',
 		title: 'Wi-Fi sharing',
-		description:
-			'Store home, guest or office Wi-Fi QR codes so they are always easy to share again.',
-	},
-	{
-		marker: 'CT',
-		title: 'Contact and profile links',
-		description:
-			'Keep profile, vCard and contact-page QR codes ready for networking and handouts.',
+		description: 'Store home, guest or office access codes for quick sharing.',
 	},
 	{
 		marker: 'EV',
 		title: 'Events and handouts',
-		description:
-			'Reuse QR codes for schedules, check-ins, forms and printed event materials.',
-	},
-	{
-		marker: 'PF',
-		title: 'Portfolio and business materials',
-		description:
-			'Keep business links, portfolios and landing pages organised for repeat use.',
+		description: 'Keep schedules, forms and event links ready to print again.',
 	},
 ] as const;
 
@@ -141,20 +125,8 @@ export default function HomePage() {
 	return (
 		<div className='min-h-screen bg-base-200'>
 			<div className='mx-auto flex max-w-6xl flex-col gap-16 px-4 py-12 sm:px-6 sm:py-16 lg:gap-20 lg:px-8 lg:py-24'>
-				<section className='grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16'>
-					<div className='space-y-8'>
-						<div className='flex items-center gap-3'>
-							<img
-								src='/qrpilot-app/portfolio/jumbo-qrpilot-small.svg'
-								alt='QrPilot logo'
-								width={44}
-								height={44}
-								className='h-11 w-11 rounded-xl object-contain'
-							/>
-							<p className='text-sm font-medium uppercase tracking-[0.2em] text-base-content/60'>
-								QrPilot
-							</p>
-						</div>
+				<section className='grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch lg:gap-16'>
+					<div className='flex h-full flex-col justify-between gap-8'>
 
 						<div className='space-y-4'>
 							<h1 className='max-w-2xl text-4xl font-bold tracking-tight text-base-content sm:text-5xl lg:text-6xl'>
@@ -188,8 +160,8 @@ export default function HomePage() {
 						</div>
 					</div>
 
-					<div id='library-preview' className='w-full'>
-						<div className='card border border-base-content/10 bg-base-100 shadow-2xl shadow-black/20'>
+					<div id='library-preview' className='w-full h-full'>
+						<div className='card h-full border border-base-content/10 bg-base-100 shadow-2xl shadow-black/20'>
 							<div className='card-body gap-6 p-5 sm:p-6'>
 								<div className='flex items-center justify-between gap-4'>
 									<div>
@@ -210,7 +182,7 @@ export default function HomePage() {
 									{previewItems.map((item) => (
 										<div
 											key={item.name}
-											className='flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-200/70 p-4'>
+											className='flex items-start gap-4 rounded-2xl border border-base-content/10 bg-base-200/70 p-4'>
 											<MockQrSquare />
 											<div className='min-w-0 flex-1 space-y-2'>
 												<div className='flex flex-wrap items-center gap-2'>
@@ -221,7 +193,7 @@ export default function HomePage() {
 														{item.category}
 													</span>
 												</div>
-												<p className='truncate text-sm text-base-content/60'>
+												<p className='text-sm break-all text-base-content/60 sm:truncate'>
 													{item.detail}
 												</p>
 											</div>
@@ -306,7 +278,7 @@ export default function HomePage() {
 					</div>
 				</section>
 
-				<section className='rounded-[2rem] border border-base-content/10 bg-base-100 px-6 py-8 shadow-xl shadow-black/10 sm:px-8 sm:py-10 lg:px-10'>
+				<section className='rounded-4xl border border-base-content/10 bg-base-100 px-6 py-8 shadow-xl shadow-black/10 sm:px-8 sm:py-10 lg:px-10'>
 					<div className='grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start'>
 						<div className='max-w-xl space-y-4'>
 							<p className='text-sm font-medium uppercase tracking-[0.18em] text-base-content/55'>
@@ -321,16 +293,16 @@ export default function HomePage() {
 							</p>
 						</div>
 
-						<div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+						<div className='grid gap-5 sm:grid-cols-2'>
 							{useCases.map((useCase) => (
 								<div
 									key={useCase.title}
-									className='rounded-2xl border border-base-content/10 bg-base-200/45 p-4'>
-									<div className='flex items-start gap-4'>
-										<div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary'>
+									className='rounded-3xl border border-base-content/10 bg-base-200/40 p-5'>
+									<div className='space-y-4'>
+										<div className='flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary'>
 											{useCase.marker}
 										</div>
-										<div className='space-y-1'>
+										<div className='space-y-2'>
 											<h3 className='text-base font-semibold text-base-content'>
 												{useCase.title}
 											</h3>
@@ -345,7 +317,7 @@ export default function HomePage() {
 					</div>
 				</section>
 
-				<section className='rounded-[2rem] border border-base-content/10 bg-base-100 px-6 py-10 shadow-2xl shadow-black/15 sm:px-8 lg:px-12 lg:py-14'>
+				<section className='rounded-4xl border border-base-content/10 bg-base-100 px-6 py-10 shadow-2xl shadow-black/15 sm:px-8 lg:px-12 lg:py-14'>
 					<div className='flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between'>
 						<div className='max-w-2xl space-y-3'>
 							<h2 className='text-3xl font-bold tracking-tight text-base-content sm:text-4xl'>
