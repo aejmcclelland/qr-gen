@@ -152,7 +152,7 @@ export default async function DashboardPage() {
 							{recentQrs.length > 0 ? (
 								<>
 									<div className='space-y-3'>
-										{recentQrs.map((qr) => (
+										{recentQrs.map((qr: DashboardQr) => (
 											<div
 												key={qr.id}
 												className='rounded-2xl border border-base-content/10 bg-base-200/50 px-4 py-4 transition-colors hover:border-base-content/20'>
