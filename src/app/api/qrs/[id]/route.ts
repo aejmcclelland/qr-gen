@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthedUserId } from '@/lib/getAuthedUserId';
+import { cleanCategoryValue } from '@/lib/categories';
 
 // GET /api/qrs/:id - fetch a single QR for the current user
 export async function GET(
@@ -66,13 +67,23 @@ export async function PATCH(
 			isPublic?: boolean;
 		};
 
+		const cleanedCategory =
+			category !== undefined ? cleanCategoryValue(category) : undefined;
+
+		if (category !== undefined && !cleanedCategory) {
+			return NextResponse.json(
+				{ error: 'Category cannot be empty' },
+				{ status: 400 },
+			);
+		}
+
 		const updated = await prisma.qrcodes.update({
 			where: { id },
 			data: {
 				...(typeof isPublic === 'boolean' ? { isPublic } : {}),
 				...(targetUrl !== undefined && { targetUrl }),
 				...(label !== undefined && { label }),
-				...(category !== undefined && { category }),
+				...(cleanedCategory !== undefined && { category: cleanedCategory }),
 				updatedAt: new Date(),
 			},
 		});

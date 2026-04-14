@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthedUserId } from '@/lib/getAuthedUserId';
+import { cleanCategoryValue, FALLBACK_CATEGORY } from '@/lib/categories';
 
 const MAX_QRS = 100;
 
@@ -101,11 +102,13 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
+		const cleanedCategory = cleanCategoryValue(category) || FALLBACK_CATEGORY;
+
 		const qr = await prisma.qrcodes.create({
 			data: {
 				targetUrl: normalizedTargetUrl,
 				label,
-				category: category ?? 'personal',
+				category: cleanedCategory,
 				userId,
 			},
 		});

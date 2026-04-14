@@ -11,6 +11,9 @@ type QrListSectionProps = {
 
 export function QrListSection({ initialQrs }: QrListSectionProps) {
 	const [activeCategories, setActiveCategories] = useState<string[]>([]);
+	const availableCategories = Array.from(
+		new Set(initialQrs.map((qr) => qr.category)),
+	);
 
 	return (
 		<section className='space-y-4 min-w-0'>
@@ -23,6 +26,7 @@ export function QrListSection({ initialQrs }: QrListSectionProps) {
 					<CategoryMultiFilter
 						value={activeCategories}
 						onChange={setActiveCategories}
+						availableCategories={availableCategories}
 					/>
 				</div>
 			</div>

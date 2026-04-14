@@ -1,16 +1,24 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { CATEGORY_OPTIONS } from '@/components/qr/CategorySelect';
+import {
+	createCategorySlug,
+	formatCategoryLabel,
+	normalizeCategoryName,
+	type CategoryOption,
+} from '@/lib/categories';
+import { useUserCategories } from '@/hooks/useUserCategories';
 
 type CategoryMultiFilterProps = {
 	value: string[]; // selected category values
 	onChange: (value: string[]) => void;
+	availableCategories?: string[];
 };
 
 const CATEGORY_BUTTON_CLASSES: Record<string, string> = {
@@ -34,7 +42,54 @@ const CATEGORY_BUTTON_CLASSES: Record<string, string> = {
 export function CategoryMultiFilter({
 	value,
 	onChange,
+	availableCategories = [],
 }: CategoryMultiFilterProps) {
+	const { categories: userCategories } = useUserCategories();
+
+	const categoryOptions = useMemo(() => {
+		const userOptions = userCategories
+			.filter((category) => category.isActive)
+			.map((category) => ({
+				value: category.slug,
+				label: category.name,
+			}));
+		const seen = new Set<string>();
+
+		function addOption(option: CategoryOption, options: CategoryOption[]) {
+			const keys = [
+				option.value,
+				createCategorySlug(option.label),
+				normalizeCategoryName(option.label),
+			];
+
+			if (keys.some((key) => seen.has(key))) return;
+
+			for (const key of keys) {
+				seen.add(key);
+			}
+
+			options.push(option);
+		}
+
+		const options: CategoryOption[] = [];
+
+		for (const option of userOptions) {
+			addOption(option, options);
+		}
+
+		for (const category of availableCategories) {
+			addOption(
+				{
+					value: category,
+					label: formatCategoryLabel(category),
+				},
+				options,
+			);
+		}
+
+		return options;
+	}, [availableCategories, userCategories]);
+
 	const toggleCategory = (categoryValue: string) => {
 		if (value.includes(categoryValue)) {
 			onChange(value.filter((v) => v !== categoryValue));
@@ -49,7 +104,7 @@ export function CategoryMultiFilter({
 		value.length === 0
 			? 'All categories'
 			: value.length === 1
-			? CATEGORY_OPTIONS.find((c) => c.value === value[0])?.label ??
+			? categoryOptions.find((c) => c.value === value[0])?.label ??
 			  '1 selected'
 			: `${value.length} categories`;
 
@@ -74,8 +129,7 @@ export function CategoryMultiFilter({
 						All
 					</button>
 
-					{/* Category buttons */}
-					{CATEGORY_OPTIONS.map((cat) => {
+					{categoryOptions.map((cat) => {
 						const selected = value.includes(cat.value);
 						const colour = CATEGORY_BUTTON_CLASSES[cat.value] ?? 'btn-primary';
 

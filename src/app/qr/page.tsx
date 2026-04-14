@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getSessionUserId } from '@/lib/getSessionUserId';
+import { ensureUserCategoriesInitialized } from '@/lib/category-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,7 @@ export default async function QrListPage() {
 	if (!session?.user) redirect('/login?callbackURL=/qr');
 
 	const userId = getSessionUserId(session);
+	await ensureUserCategoriesInitialized(userId);
 
 	const dbQrs = await prisma.qrcodes.findMany({
 		where: { userId },

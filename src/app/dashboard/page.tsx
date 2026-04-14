@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getSessionUserId } from '@/lib/getSessionUserId';
 import { prisma } from '@/lib/prisma';
+import { formatCategoryLabel } from '@/lib/categories';
+import { ensureUserCategoriesInitialized } from '@/lib/category-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,27 +16,17 @@ type DashboardQr = {
 	targetUrl: string;
 };
 
-function formatCategory(category: string) {
-	return category
-		.split(/[-_\s]+/)
-		.filter(Boolean)
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-		.join(' ');
-}
-
 function formatDisplayValue(targetUrl: string) {
 	return targetUrl.replace(/^https?:\/\//, '');
 }
 
 async function getDashboardData(userId: string) {
-	const [totalQrCodes, categories, recentQrs] = await Promise.all([
+	const [totalQrCodes, enabledCategoryCount, recentQrs] = await Promise.all([
 		prisma.qrcodes.count({
 			where: { userId },
 		}),
-		prisma.qrcodes.findMany({
-			where: { userId },
-			distinct: ['category'],
-			select: { category: true },
+		prisma.category.count({
+			where: { userId, isActive: true },
 		}),
 		prisma.qrcodes.findMany({
 			where: { userId },
@@ -51,7 +43,7 @@ async function getDashboardData(userId: string) {
 
 	return {
 		totalQrCodes,
-		categoryCount: categories.length,
+		categoryCount: enabledCategoryCount,
 		recentQrs: recentQrs satisfies DashboardQr[],
 	};
 }
@@ -61,6 +53,7 @@ export default async function DashboardPage() {
 	if (!session?.user) redirect('/login?callbackURL=/dashboard');
 
 	const userId = getSessionUserId(session);
+	await ensureUserCategoriesInitialized(userId);
 	const { totalQrCodes, categoryCount, recentQrs } =
 		await getDashboardData(userId);
 
@@ -111,13 +104,13 @@ export default async function DashboardPage() {
 					<div className='card border border-base-content/10 bg-base-100 shadow-sm'>
 						<div className='card-body gap-2'>
 							<p className='text-sm font-medium text-base-content/60'>
-								Categories
+								Enabled categories
 							</p>
 							<p className='text-3xl font-semibold text-base-content'>
 								{categoryCount}
 							</p>
 							<p className='text-sm text-base-content/60'>
-								Used across your QR codes
+								Visible in your QR forms
 							</p>
 						</div>
 					</div>
@@ -166,7 +159,7 @@ export default async function DashboardPage() {
 														</p>
 													</div>
 													<span className='badge badge-neutral badge-sm border-base-content/10'>
-														{formatCategory(qr.category)}
+														{formatCategoryLabel(qr.category)}
 													</span>
 												</div>
 											</div>
@@ -219,6 +212,9 @@ export default async function DashboardPage() {
 								<Link href='/qr' className='btn btn-outline w-full'>
 									View Saved QR Codes
 								</Link>
+								<Link href='/categories' className='btn btn-outline w-full'>
+									Manage Categories
+								</Link>
 							</div>
 						</div>
 					</aside>
@@ -246,8 +242,8 @@ export default async function DashboardPage() {
 						</div>
 
 						<div>
-							<Link href='/qr' className='btn btn-outline'>
-								Browse your QR library
+							<Link href='/categories' className='btn btn-outline'>
+								Manage categories
 							</Link>
 						</div>
 					</div>

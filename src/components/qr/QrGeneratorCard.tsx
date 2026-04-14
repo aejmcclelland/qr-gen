@@ -241,7 +241,19 @@ export function QrGeneratorCard() {
 						onLabelChange={setLabel}
 						onValueChange={updateValue}
 					/>
-					<CategorySelect value={category} onChange={setCategory} />
+					<div className='form-control w-full'>
+						<label className='label mb-1' id='qr-category-label'>
+							<span className='label-text'>Category</span>
+						</label>
+						<CategorySelect
+							value={category}
+							onChange={setCategory}
+							ariaLabelledBy='qr-category-label'
+							loadUserCategories={Boolean(session?.user)}
+							showSuggestedDefaults={!session?.user}
+							preserveCurrentValue={!session?.user}
+						/>
+					</div>
 				</div>
 				<div className='flex flex-col items-center gap-4'>
 					{qrValue ? <QrPreview data={qrValue} /> : <QrPlaceholder />}

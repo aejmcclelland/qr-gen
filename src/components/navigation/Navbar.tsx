@@ -9,6 +9,7 @@ import {
 	User,
 	LogOut,
 	LayoutDashboard,
+	Tags,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useSession, signOut } from '@/lib/auth-client';
@@ -175,6 +176,10 @@ export function Navbar() {
 								<DropdownMenuItem onClick={() => router.push('/qr')}>
 									<QrCode className='text-primary mr-2 h-4 w-4' />
 									My QRs
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => router.push('/categories')}>
+									<Tags className='text-primary mr-2 h-4 w-4' />
+									Categories
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem

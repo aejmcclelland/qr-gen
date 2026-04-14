@@ -15,6 +15,8 @@ import { useQrExport } from '@/hooks/useQrExport';
 import { Copy, ExternalLink, Share } from 'lucide-react';
 import { IsPublicToggle } from '@/components/qr/IsPublicToggle';
 import type { QrClient } from '@/lib/qr-mapper';
+import { CategorySelect } from '@/components/qr/CategorySelect';
+import { formatCategoryLabel } from '@/lib/categories';
 
 function isIosSafari() {
 	if (typeof navigator === 'undefined') return false;
@@ -339,27 +341,17 @@ export function QrCard ({
 					</div>
 
 					<div className='form-control w-full'>
-						<label className='label' htmlFor={`edit-category-${qr.id}`}>
+						<label className='label' id={`edit-category-label-${qr.id}`}>
 							<span className='label-text'>Category</span>
 						</label>
-						<select
-							id={`edit-category-${qr.id}`}
-							className='select select-bordered select-sm w-full'
+						<CategorySelect
 							value={editCategory}
-							onChange={(e) => onChangeCategory(e.target.value)}
-							required>
-							{Object.keys(CATEGORY_BADGE_CLASSES)
-								.sort((a, b) =>
-									a
-										.replaceAll('_', ' ')
-										.localeCompare(b.replaceAll('_', ' '))
-								)
-								.map((key) => (
-									<option key={key} value={key}>
-										{key.replaceAll('_', ' ')}
-									</option>
-								))}
-						</select>
+							onChange={onChangeCategory}
+							size='sm'
+							ariaLabelledBy={`edit-category-label-${qr.id}`}
+							showSuggestedDefaults={false}
+							triggerClassName='select select-bordered select-sm w-full'
+						/>
 					</div>
 
 					<div className='form-control w-full'>
@@ -457,7 +449,7 @@ export function QrCard ({
 								className={`badge badge-soft max-w-full overflow-hidden text-ellipsis whitespace-nowrap sm:min-w-0 sm:flex-1 ${
 									CATEGORY_BADGE_CLASSES[qr.category] ?? 'badge-outline'
 								}`}>
-								{qr.category}
+								{formatCategoryLabel(qr.category)}
 							</span>
 
 							<span className='shrink-0 text-[10px] text-base-content/40 sm:ml-auto'>
