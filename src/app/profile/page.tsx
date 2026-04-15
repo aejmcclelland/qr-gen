@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
+import { ProfileAvatarUploader } from '@/components/profile/ProfileAvatarUploader';
 
 export default function ProfilePage() {
 	const router = useRouter();
@@ -37,6 +38,7 @@ export default function ProfilePage() {
 
 	const { user } = session;
 	const displayName = user.name || user.email?.split('@')[0] || 'Your name';
+	const avatarUrl = user.image?.trim() || null;
 	const initials =
 		user.name
 			?.split(' ')
@@ -47,8 +49,7 @@ export default function ProfilePage() {
 		'?';
 
 	return (
-		<>
-			<div className='min-h-screen w-full overflow-x-hidden pb-24'>
+		<div className='min-h-screen w-full overflow-x-hidden pb-24'>
 				<div className='mx-auto w-full max-w-5xl px-4 sm:px-6 pt-8 pb-24'>
 					<header className='mb-6'>
 						<h1 className='text-2xl font-bold leading-tight'>My Profile</h1>
@@ -58,12 +59,12 @@ export default function ProfilePage() {
 						<div className='card-body p-4 sm:p-6 space-y-6'>
 							{/* Top row: avatar + basic info */}
 							<div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
-								<div className='flex items-center gap-4'>
-									<div className='avatar'>
-										<div className='w-16 rounded-full bg-primary text-primary-content flex items-center justify-center text-xl font-semibold'>
-											{initials}
-										</div>
-									</div>
+								<div className='flex flex-col gap-4 lg:flex-row lg:items-center'>
+									<ProfileAvatarUploader
+										initialAvatarUrl={avatarUrl}
+										initials={initials}
+										displayName={displayName}
+									/>
 									<div>
 										<h2 className='text-xl font-semibold'>{displayName}</h2>
 										<p className='text-sm text-base-content/70 break-all sm:break-normal'>
@@ -163,6 +164,5 @@ export default function ProfilePage() {
 					</div>
 				</div>
 			</div>
-		</>
 	);
 }

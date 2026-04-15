@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -22,6 +23,11 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { LucideIcon } from 'lucide-react';
+import {
+	AVATAR_UPDATED_EVENT,
+	type AvatarUpdatedDetail,
+} from '@/lib/avatar-events';
+import { UserAvatar } from '@/components/profile/UserAvatar';
 
 type NavItem = {
 	href: string;
@@ -35,6 +41,8 @@ export function Navbar() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const isLoggedIn = Boolean(session?.user);
+	const sessionAvatarUrl = session?.user?.image?.trim() || null;
+	const [avatarUrl, setAvatarUrl] = useState<string | null>(sessionAvatarUrl);
 	const brandHref = isLoggedIn ? '/dashboard' : '/';
 	const signInHref =
 		pathname &&
@@ -81,6 +89,23 @@ export function Navbar() {
 				.slice(0, 2)
 				.toUpperCase()
 		: (session?.user?.email?.[0]?.toUpperCase() ?? '?');
+
+	useEffect(() => {
+		setAvatarUrl(sessionAvatarUrl);
+	}, [sessionAvatarUrl]);
+
+	useEffect(() => {
+		function handleAvatarUpdated(event: Event) {
+			const detail = (event as CustomEvent<AvatarUpdatedDetail>).detail;
+			setAvatarUrl(detail?.avatarUrl?.trim() || null);
+		}
+
+		window.addEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
+
+		return () => {
+			window.removeEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
+		};
+	}, []);
 
 	return (
 		<header className='fixed top-4 left-0 right-0 z-40 flex justify-center px-4'>
@@ -155,9 +180,13 @@ export function Navbar() {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<button className='btn btn-ghost btn-xs rounded-full px-1.5 sm:px-2 flex items-center gap-1 sm:gap-2'>
-									<div className='h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-semibold'>
-										{initials}
-									</div>
+									<UserAvatar
+										src={avatarUrl}
+										initials={initials}
+										alt={`${session.user.name ?? 'Account'} avatar`}
+										sizeClassName='h-6 w-6 sm:h-7 sm:w-7'
+										textClassName='text-xs'
+									/>
 									<span className='hidden sm:inline text-xs'>
 										{session.user.name ?? 'Account'}
 									</span>
