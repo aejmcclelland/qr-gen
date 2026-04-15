@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useState, type SyntheticEvent } from 'react';
+import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { Toast } from '@/components/ui/Toast';
 import { QrCard } from '@/components/qr/QrCard';
 import ConfirmDeleteModal from '@/components/qr/ConfirmDeleteModal';
 import { BulkActionBar } from '@/components/qr/BulkActionBar';
 import type { QrClient } from '@/lib/qr-mapper';
 import { CheckSquare } from 'lucide-react';
+import type { VisibilityFilter } from '@/components/qr/QrListSection';
 
 async function readErrorPayload(
 	res: Response
@@ -43,15 +44,32 @@ async function readErrorPayload(
 type Props = {
 	readonly initialQrs: QrClient[];
 	activeCategories: string[];
+	visibilityFilter: VisibilityFilter;
+	readonly initialEditId?: string;
+	readonly onClearCategories?: () => void;
+	readonly onClearVisibility?: () => void;
 };
 
-export default function QrListClient({  initialQrs,  activeCategories }: Props) {
+export default function QrListClient({
+	initialQrs,
+	activeCategories,
+	visibilityFilter,
+	initialEditId,
+	onClearCategories,
+	onClearVisibility,
+}: Props) {
+	const initialEditQr = initialQrs.find((qr) => qr.id === initialEditId);
+	const initialEditQrId = initialEditQr?.id;
 	const [qrs, setQrs] = useState<QrClient[]>(initialQrs);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
-	const [editingId, setEditingId] = useState<string | null>(null);
-	const [editLabel, setEditLabel] = useState('');
-	const [editUrl, setEditUrl] = useState('');
-	const [editCategory, setEditCategory] = useState('');
+	const [editingId, setEditingId] = useState<string | null>(
+		initialEditQr?.id ?? null,
+	);
+	const [editLabel, setEditLabel] = useState(initialEditQr?.label ?? '');
+	const [editUrl, setEditUrl] = useState(initialEditQr?.targetUrl ?? '');
+	const [editCategory, setEditCategory] = useState(
+		initialEditQr?.category ?? '',
+	);
 	const [savingEdit, setSavingEdit] = useState(false);
 
 	const [toast, setToast] = useState<{
@@ -69,6 +87,14 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 	const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 	const [confirmOpen, setConfirmOpen] = useState(false);
 	const [isBulkDownloading, setIsBulkDownloading] = useState(false);
+
+	useEffect(() => {
+		if (!initialEditQrId) return;
+
+		document
+			.getElementById(`qr-${initialEditQrId}`)
+			?.scrollIntoView({ block: 'center' });
+	}, [initialEditQrId]);
 
 	const handleDelete = async (id: string) => {
 		if (!confirm('Delete this QR code?')) return;
@@ -153,11 +179,24 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 		setSelectedIds(() => new Set());
 	}, []);
 
-	// Move visibleQrs before toggleSelectAll
-	const visibleQrs =
-		activeCategories.length === 0
-			? qrs
-			: qrs.filter((qr) => activeCategories.includes(qr.category));
+	const hasCategoryFilter = activeCategories.length > 0;
+	const hasVisibilityFilter = visibilityFilter !== 'all';
+	const hasAnyFilter = hasCategoryFilter || hasVisibilityFilter;
+	const visibleQrs = qrs.filter((qr) => {
+		const matchesCategory =
+			!hasCategoryFilter || activeCategories.includes(qr.category);
+		const matchesVisibility =
+			visibilityFilter === 'all' ||
+			(visibilityFilter === 'public' && qr.isPublic) ||
+			(visibilityFilter === 'private' && !qr.isPublic);
+
+		return matchesCategory && matchesVisibility;
+	});
+
+	const clearFilters = () => {
+		onClearCategories?.();
+		onClearVisibility?.();
+	};
 
 	const toggleSelectAll = useCallback(
 		(nextSelectAll: boolean) => {
@@ -169,7 +208,7 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 			// Ensure selection mode is active
 			setIsSelecting(true);
 
-			// Select all currently visible QR ids (respects active category filters)
+			// Select all currently visible QR ids, including active filters.
 			setSelectedIds(() => new Set(visibleQrs.map((qr) => qr.id)));
 		},
 		[clearSelection, visibleQrs]
@@ -324,7 +363,7 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 
 			if (!res.ok) throw new Error('Failed to update');
 
-				const updated = (await res.json()) as QrClient;
+			const updated = (await res.json()) as QrClient;
 
 			setQrs((prev) =>
 				prev.map((qr) => (qr.id === id ? { ...qr, ...updated } : qr))
@@ -349,12 +388,28 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 		}
 	};
 	if (visibleQrs.length === 0) {
+		const isFiltered = hasAnyFilter && qrs.length > 0;
+
 		return (
 			<div className='card bg-base-100 shadow-xl p-6'>
-				<h2 className='card-title text-xl mb-2'>Your QR Codes</h2>
+				<h2 className='card-title text-xl mb-2'>
+					{isFiltered ? 'No QR codes match these filters' : 'Your QR Codes'}
+				</h2>
 				<p className='text-sm text-base-content/70'>
-					You haven&apos;t saved any QR codes yet.
+					{isFiltered
+						? 'Try another category or visibility filter, or clear filters to see your full library.'
+						: "You haven't saved any QR codes yet."}
 				</p>
+				{isFiltered ? (
+					<div className='mt-4'>
+						<button
+							type='button'
+							className='btn btn-outline btn-sm'
+							onClick={clearFilters}>
+							Clear filters
+						</button>
+					</div>
+				) : null}
 			</div>
 		);
 	}
@@ -407,12 +462,39 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 					}))
 				}
 			/>
-			<div className='flex items-center justify-between mb-3'>
-				<h2 className='text-lg font-semibold'>Your QR Codes</h2>
+			<div className='mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+				<div className='space-y-1'>
+					<h2 className='text-lg font-semibold'>Your QR Codes</h2>
+					{hasAnyFilter ? (
+						<div className='flex flex-wrap items-center gap-2 text-xs text-base-content/60'>
+							<span>
+								Showing {visibleQrs.length} of {qrs.length}
+							</span>
+							{hasVisibilityFilter ? (
+								<span className='badge badge-sm badge-outline'>
+									{visibilityFilter === 'public' ? 'Public' : 'Private'}
+								</span>
+							) : null}
+							{hasCategoryFilter ? (
+								<span className='badge badge-sm badge-outline'>
+									{activeCategories.length === 1
+										? '1 category'
+										: `${activeCategories.length} categories`}
+								</span>
+							) : null}
+							<button
+								type='button'
+								className='link'
+								onClick={clearFilters}>
+								Clear filters
+							</button>
+						</div>
+					) : null}
+				</div>
 				{!isSelecting ? (
 					<button
 						type='button'
-						className='btn btn-neutral btn-sm rounded-full gap-2'
+						className='btn btn-neutral btn-sm rounded-full gap-2 self-start sm:self-auto'
 						onClick={() => startSelecting()}>
 						<CheckSquare className='w-4 h-4 text-primary' />
 						Select
@@ -422,7 +504,7 @@ export default function QrListClient({  initialQrs,  activeCategories }: Props) 
 
 			<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 pb-24 min-w-0'>
 				{visibleQrs.map((qr) => (
-					<div key={qr.id} className='min-w-0 w-full'>
+					<div key={qr.id} id={`qr-${qr.id}`} className='min-w-0 w-full'>
 						<QrCard
 							qr={qr}
 							isEditing={editingId === qr.id}
