@@ -1,22 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthedUserId } from '@/lib/getAuthedUserId';
-import {
-	cleanCategoryName,
-	createCategorySlug,
-	MAX_CATEGORY_NAME_LENGTH,
-	toUserCategoryPayload,
-} from '@/lib/categories';
+import { MAX_CATEGORY_NAME_LENGTH } from '@/lib/categories';
 import { ensureUserCategoriesInitialized } from '@/lib/category-service';
+import {
+	parsePatchCategoryBody,
+	updateUserCategory,
+	type ParsePatchCategoryBodyResult,
+	type UpdateUserCategoryResult,
+} from '@/lib/category-update';
 
-function parseCategoryName(input: unknown) {
-	if (typeof input !== 'string') return null;
+type ParsePatchCategoryBodyError = Exclude<
+	ParsePatchCategoryBodyResult,
+	{ type: 'success' }
+>;
 
-	const name = cleanCategoryName(input);
-	if (!name) return null;
-	if (name.length > MAX_CATEGORY_NAME_LENGTH) return null;
+function invalidCategoryNameResponse() {
+	return NextResponse.json(
+		{
+			error: `Category name must be between 1 and ${MAX_CATEGORY_NAME_LENGTH} characters.`,
+		},
+		{ status: 400 },
+	);
+}
 
-	return name;
+function categoryInUseError(qrCount: number) {
+	return qrCount === 1
+		? 'This category is used by 1 QR code. Change that QR code before disabling it.'
+		: `This category is used by ${qrCount} QR codes. Change those QR codes before disabling it.`;
+}
+
+function mapParseCategoryBodyResult(result: ParsePatchCategoryBodyError) {
+	switch (result.type) {
+		case 'invalid_json':
+			return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+		case 'missing_updates':
+			return NextResponse.json(
+				{ error: 'Provide a name or isActive value.' },
+				{ status: 400 },
+			);
+		case 'invalid_name':
+			return invalidCategoryNameResponse();
+	}
+}
+
+function mapUpdateCategoryResult(result: UpdateUserCategoryResult) {
+	switch (result.type) {
+		case 'success':
+			return NextResponse.json(
+				{
+					category: result.category,
+					updatedQrCodes: result.updatedQrCodes,
+				},
+				{ status: 200 },
+			);
+		case 'not_found':
+			return NextResponse.json({ error: 'Not found' }, { status: 404 });
+		case 'collision':
+			return NextResponse.json(
+				{ error: 'You already have a category with that name.' },
+				{ status: 409 },
+			);
+		case 'preset_rename_forbidden':
+			return NextResponse.json(
+				{ error: 'Preset categories can be enabled or disabled, not renamed.' },
+				{ status: 403 },
+			);
+		case 'in_use':
+			return NextResponse.json(
+				{
+					error: categoryInUseError(result.qrCount),
+					qrCount: result.qrCount,
+				},
+				{ status: 409 },
+			);
+	}
 }
 
 export async function PATCH(
@@ -34,135 +92,18 @@ export async function PATCH(
 
 		await ensureUserCategoriesInitialized(userId);
 
-		let body: { name?: unknown; isActive?: unknown };
-		try {
-			body = (await req.json()) as { name?: unknown; isActive?: unknown };
-		} catch {
-			return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+		const parsedBody = await parsePatchCategoryBody(req);
+		if (parsedBody.type !== 'success') {
+			return mapParseCategoryBodyResult(parsedBody);
 		}
 
-		const hasName = body.name !== undefined;
-		const hasActive = typeof body.isActive === 'boolean';
-
-		if (!hasName && !hasActive) {
-			return NextResponse.json(
-				{ error: 'Provide a name or isActive value.' },
-				{ status: 400 },
-			);
-		}
-
-		const name = hasName ? parseCategoryName(body.name) : null;
-		if (hasName && !name) {
-			return NextResponse.json(
-				{
-					error: `Category name must be between 1 and ${MAX_CATEGORY_NAME_LENGTH} characters.`,
-				},
-				{ status: 400 },
-			);
-		}
-
-		const slug = name ? createCategorySlug(name) : null;
-
-		const result = await prisma.$transaction(async (tx) => {
-			const existing = await tx.category.findFirst({
-				where: { id, userId },
-			});
-
-			if (!existing) return null;
-
-			const usedQrCount = await tx.qrcodes.count({
-				where: {
-					userId,
-					category: existing.slug,
-				},
-			});
-
-			if (hasActive && body.isActive === false && usedQrCount > 0) {
-				return { inUse: true as const, qrCount: usedQrCount };
-			}
-
-			if (name && existing.isPreset) {
-				return { presetRename: true as const };
-			}
-
-			if (name && slug) {
-				const collision = await tx.category.findFirst({
-					where: {
-						userId,
-						slug,
-						NOT: { id },
-					},
-					select: { id: true },
-				});
-
-				if (collision) {
-					return { collision: true as const };
-				}
-			}
-
-			const updated = await tx.category.update({
-				where: { id },
-				data: {
-					...(name && slug ? { name, slug } : {}),
-					...(hasActive ? { isActive: body.isActive as boolean } : {}),
-				},
-			});
-
-			const updatedQrCodes =
-				name && slug && existing.slug !== slug
-					? await tx.qrcodes.updateMany({
-							where: {
-								userId,
-								category: existing.slug,
-							},
-							data: {
-								category: slug,
-								updatedAt: new Date(),
-							},
-						})
-					: { count: 0 };
-
-			return {
-				category: toUserCategoryPayload({
-					...updated,
-					qrCount: usedQrCount,
-				}),
-				updatedQrCodes: updatedQrCodes.count,
-			};
+		const result = await updateUserCategory({
+			categoryId: id,
+			userId,
+			data: parsedBody.data,
 		});
 
-		if (!result) {
-			return NextResponse.json({ error: 'Not found' }, { status: 404 });
-		}
-
-		if ('collision' in result) {
-			return NextResponse.json(
-				{ error: 'You already have a category with that name.' },
-				{ status: 409 },
-			);
-		}
-
-		if ('presetRename' in result) {
-			return NextResponse.json(
-				{ error: 'Preset categories can be enabled or disabled, not renamed.' },
-				{ status: 403 },
-			);
-		}
-
-		if ('inUse' in result) {
-			return NextResponse.json(
-				{
-					error:
-						result.qrCount === 1
-							? 'This category is used by 1 QR code. Change that QR code before disabling it.'
-							: `This category is used by ${result.qrCount} QR codes. Change those QR codes before disabling it.`,
-					qrCount: result.qrCount,
-				},
-				{ status: 409 },
-			);
-		}
-
-		return NextResponse.json(result, { status: 200 });
+		return mapUpdateCategoryResult(result);
 	} catch (error) {
 		if ((error as { code?: string })?.code === 'P2002') {
 			return NextResponse.json(
