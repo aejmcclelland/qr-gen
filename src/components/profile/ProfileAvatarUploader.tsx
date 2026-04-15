@@ -156,6 +156,9 @@ export function ProfileAvatarUploader({
 	};
 
 	const busy = isUploading || isRemoving;
+	const imageControlsClass = avatarUrl
+		? 'sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100'
+		: '';
 
 	return (
 		<div className='space-y-2'>
@@ -169,16 +172,17 @@ export function ProfileAvatarUploader({
 				aria-describedby='avatar-upload-help'
 			/>
 
-			<div className='relative w-fit'>
+			<div className='group relative w-fit'>
 				<button
 					type='button'
-					className={`group relative h-20 w-20 overflow-hidden rounded-full ring-offset-2 ring-offset-base-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+					className={`relative h-20 w-20 overflow-hidden rounded-full ring-offset-2 ring-offset-base-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
 						busy ? 'cursor-wait opacity-80' : 'cursor-pointer'
 					}`}
 					onClick={() => fileInputRef.current?.click()}
 					disabled={busy}
 					aria-label={avatarUrl ? 'Replace profile photo' : 'Upload profile photo'}
-					aria-describedby='avatar-upload-help'>
+					aria-describedby='avatar-upload-help'
+					title={avatarUrl ? 'Replace photo' : 'Add photo'}>
 					<UserAvatar
 						src={avatarUrl}
 						initials={initials}
@@ -187,36 +191,35 @@ export function ProfileAvatarUploader({
 						textClassName='text-2xl'
 					/>
 
-					<span
-						className={`absolute inset-0 flex items-center justify-center bg-neutral/45 text-neutral-content transition-opacity ${
-							isUploading
-								? 'opacity-100'
-								: 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
-						}`}>
-						{isUploading ? (
+					{isUploading ? (
+						<span className='absolute inset-0 flex items-center justify-center bg-base-100/45 text-base-content'>
 							<Loader2 className='h-5 w-5 animate-spin' aria-hidden='true' />
-						) : (
-							<span className='flex items-center gap-1.5 text-xs font-medium'>
-								<Camera className='h-4 w-4' aria-hidden='true' />
-								<span className='hidden sm:inline'>
-									{avatarUrl ? 'Replace' : 'Add photo'}
-								</span>
-							</span>
-						)}
-					</span>
+						</span>
+					) : null}
+				</button>
 
-					<span className='absolute bottom-0.5 right-0.5 flex h-7 w-7 items-center justify-center rounded-full border border-base-300 bg-base-100 text-base-content shadow-sm transition group-hover:scale-105 group-focus-visible:scale-105'>
+				<button
+					type='button'
+					className={`absolute -bottom-1.5 -right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-base-300 bg-base-100 text-base-content shadow-sm transition hover:bg-primary hover:text-primary-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 disabled:cursor-wait disabled:opacity-70 ${imageControlsClass}`}
+					onClick={() => fileInputRef.current?.click()}
+					disabled={busy}
+					aria-label={avatarUrl ? 'Replace photo' : 'Add photo'}
+					title={avatarUrl ? 'Replace photo' : 'Add photo'}>
+					{isUploading ? (
+						<Loader2 className='h-3.5 w-3.5 animate-spin' aria-hidden='true' />
+					) : (
 						<Camera className='h-3.5 w-3.5' aria-hidden='true' />
-					</span>
+					)}
 				</button>
 
 				{avatarUrl ? (
 					<button
 						type='button'
-						className='absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-base-300 bg-base-100 text-base-content shadow-sm transition hover:bg-error hover:text-error-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 disabled:cursor-wait disabled:opacity-70'
+						className={`absolute -right-1.5 -top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-base-300 bg-base-100 text-base-content shadow-sm transition hover:bg-error hover:text-error-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 disabled:cursor-wait disabled:opacity-70 ${imageControlsClass}`}
 						onClick={handleRemove}
 						disabled={busy}
-						aria-label='Remove profile photo'>
+						aria-label='Remove photo'
+						title='Remove photo'>
 						{isRemoving ? (
 							<Loader2 className='h-3.5 w-3.5 animate-spin' aria-hidden='true' />
 						) : (
