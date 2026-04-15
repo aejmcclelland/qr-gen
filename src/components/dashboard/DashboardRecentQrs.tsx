@@ -28,14 +28,14 @@ function formatDate(date: Date) {
 export function DashboardRecentQrs({ qrs }: DashboardRecentQrsProps) {
 	return (
 		<section className='rounded-lg border border-base-content/10 bg-base-100 shadow-sm'>
-			<div className='flex flex-col gap-5 p-5 sm:p-6'>
+			<div className='flex flex-col gap-4 p-5 sm:p-6'>
 				<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
 					<div className='space-y-1'>
 						<h2 className='text-2xl font-semibold text-base-content'>
 							Recent QR codes
 						</h2>
 						<p className='text-sm leading-6 text-base-content/60'>
-							Resume recent work without hunting through the full library.
+							A compact preview of your latest saved work.
 						</p>
 					</div>
 					<Link href='/qr' className='btn btn-outline btn-sm'>
@@ -48,8 +48,8 @@ export function DashboardRecentQrs({ qrs }: DashboardRecentQrsProps) {
 						{qrs.map((qr) => (
 							<div
 								key={qr.id}
-								className='flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between'>
-								<div className='min-w-0 space-y-2'>
+								className='flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between'>
+								<div className='min-w-0 space-y-1.5'>
 									<div className='flex min-w-0 flex-wrap items-center gap-2'>
 										<p className='max-w-full truncate text-base font-medium text-base-content'>
 											{qr.label?.trim() || 'Untitled QR code'}
@@ -88,8 +88,7 @@ export function DashboardRecentQrs({ qrs }: DashboardRecentQrsProps) {
 								No QR codes yet
 							</h3>
 							<p className='text-sm leading-6 text-base-content/65'>
-								Create and save your first QR code, then it will appear here for
-								quick access.
+								Create your first QR code, then recent work will appear here.
 							</p>
 							<Link href='/qr/new' className='btn btn-primary btn-sm'>
 								Create a QR code

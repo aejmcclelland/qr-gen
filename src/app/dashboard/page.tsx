@@ -63,7 +63,7 @@ async function getDashboardData(userId: string) {
 			prisma.qrcodes.findMany({
 				where: { userId },
 				orderBy: { createdAt: 'desc' },
-				take: 6,
+				take: 3,
 				select: {
 					id: true,
 					label: true,
@@ -123,8 +123,8 @@ export default async function DashboardPage() {
 							Your QR control centre
 						</h1>
 						<p className='max-w-2xl text-sm leading-6 text-base-content/65 sm:text-base'>
-							See what you have, jump back into recent QR codes, and manage the
-							categories that keep your library usable.
+							See your QR library at a glance and jump straight into the work
+							that matters.
 						</p>
 					</div>
 				</header>
@@ -135,12 +135,12 @@ export default async function DashboardPage() {
 					privateQrCodes={privateQrCodes}
 					totalCategories={totalCategories}
 				/>
-				<DashboardQuickActions />
-				<DashboardRecentQrs qrs={recentQrs} />
 				<DashboardCategoryShortcuts
 					categories={categoryShortcuts}
 					totalQrCodes={totalQrCodes}
 				/>
+				<DashboardRecentQrs qrs={recentQrs} />
+				<DashboardQuickActions />
 			</div>
 		</div>
 	);

@@ -35,7 +35,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 	},
 	{
 		label: 'Manage categories',
-		description: 'Control your dropdown options.',
+		description: 'Add, hide, or rename choices.',
 		href: '/categories',
 		icon: Tags,
 		toneClassName: 'bg-accent/15 text-accent',
@@ -54,7 +54,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 export function DashboardQuickActions() {
 	return (
 		<section
-			className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'
+			className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'
 			aria-label='Quick actions'>
 			{QUICK_ACTIONS.map((action) => {
 				const Icon = action.icon;
@@ -63,14 +63,15 @@ export function DashboardQuickActions() {
 					<Link
 						key={action.href}
 						href={action.href}
-						className='group rounded-lg border border-base-content/10 bg-base-100 p-4 shadow-sm transition-colors hover:border-primary/40'>
-						<div className='flex h-full flex-col gap-4'>
+						className='group rounded-lg border border-base-content/10 bg-base-100/70 p-3 shadow-sm transition-colors hover:border-primary/40 hover:bg-base-100'>
+						<div className='flex h-full flex-col gap-3'>
 							<div className='flex items-start justify-between gap-3'>
 								<span
-									className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${action.toneClassName}`}>
-									<Icon className='h-5 w-5' aria-hidden='true' />
+									className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${action.toneClassName}`}>
+									<Icon className='h-4 w-4' aria-hidden='true' />
 								</span>
-								<span className={`badge badge-sm ${action.badgeClassName}`}>
+								<span
+									className={`badge badge-outline badge-sm ${action.badgeClassName}`}>
 									Open
 								</span>
 							</div>

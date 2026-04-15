@@ -25,7 +25,7 @@ export function DashboardCategoryShortcuts({
 							Category shortcuts
 						</h2>
 						<p className='text-sm leading-6 text-base-content/60'>
-							Jump straight to the categories that already contain QR codes.
+							Open active categories that already contain QR codes.
 						</p>
 					</div>
 					<Link href='/categories' className='btn btn-outline btn-sm'>
@@ -51,7 +51,7 @@ export function DashboardCategoryShortcuts({
 												: `${category.qrCount} QR codes`}
 										</p>
 									</div>
-									<span className='badge badge-primary badge-sm'>View</span>
+									<span className='badge badge-primary badge-sm'>Open</span>
 								</div>
 							</Link>
 						))}
@@ -64,8 +64,8 @@ export function DashboardCategoryShortcuts({
 							</h3>
 							<p className='text-sm leading-6 text-base-content/65'>
 								{totalQrCodes === 0
-									? 'Create a QR code and choose a category to build useful shortcuts here.'
-									: 'Assign categories to your QR codes, then your most useful category links will appear here.'}
+									? 'Create a QR code and choose a category to start building shortcuts.'
+									: 'Shortcuts appear once active categories contain QR codes.'}
 							</p>
 							<div className='flex flex-col gap-2 sm:flex-row'>
 								<Link href='/qr/new' className='btn btn-primary btn-sm'>

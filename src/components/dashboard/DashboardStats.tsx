@@ -19,7 +19,7 @@ function getPublicQrCodeHelper(totalQrCodes: number, publicQrCodes: number) {
 
 	return totalQrCodes === 0
 		? 'Create a QR before sharing one.'
-		: 'Use the Public toggle on a QR card.';
+		: 'Use the Public toggle to share one.';
 }
 
 function getDashboardStats({
@@ -59,7 +59,7 @@ function getDashboardStats({
 			helper:
 				totalCategories === 0
 					? 'Build your dropdown list.'
-					: 'Available in your category library.',
+					: 'Available dropdown choices.',
 			href: '/categories',
 		},
 	];
