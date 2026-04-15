@@ -90,40 +90,42 @@ export function Navbar() {
           border border-base-300
           rounded-full
           shadow-lg
-          px-4
+          px-2 sm:px-4
           py-1.5
           flex
           items-center
-          gap-4
-            backdrop-blur-xs
+          gap-2 sm:gap-4
+          backdrop-blur-xs
           w-full
           max-w-3xl
+          min-w-0
         '>
-				<div className='flex-none'>
+				<div className='flex-none min-w-0'>
 					<Link
 						href={brandHref}
 						className='
-              flex items-center gap-2
-              rounded-full px-2 py-1
+              flex items-center gap-1 sm:gap-2
+              rounded-full px-1 sm:px-2 py-1
               hover:bg-base-200
               transition-colors
+              min-w-0
             '>
-						<span className='inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10'>
+						<span className='inline-flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-primary/10'>
 							<Image
 								src='/qrpilot-app/portfolio/jumbo-qrpilot-small.svg'
 								alt='QrPilot logo'
 								width={64}
 								height={64}
-								className='h-14 w-14 object-contain'
+								className='h-10 w-10 sm:h-14 sm:w-14 object-contain'
 							/>
 						</span>
-						<span className='font-semibold text-sm sm:text-base leading-none'>
+						<span className='hidden sm:inline font-semibold text-sm sm:text-base leading-none'>
 							QrPilot
 						</span>
 					</Link>
 				</div>
 
-				<div className='flex-1 flex justify-center'>
+				<div className='flex-1 min-w-0 flex justify-center'>
 					<div className='flex items-center gap-2'>
 						{navItems.map((item) => {
 							const Icon = item.icon;
@@ -135,8 +137,9 @@ export function Navbar() {
 									title={item.label}
 									aria-label={item.label}
 									className={`
-                btn btn-ghost btn-xs rounded-full px-3
+                btn btn-ghost btn-xs rounded-full px-2 sm:px-3
                 flex items-center gap-1
+                min-w-0
                 ${item.isActive(pathname) ? 'bg-base-200' : ''}
               `}>
 									<Icon className='h-6 w-6' />
@@ -147,12 +150,12 @@ export function Navbar() {
 					</div>
 				</div>
 
-				<div className='flex-none flex items-center gap-2'>
+				<div className='flex-none shrink-0 flex items-center gap-1 sm:gap-2'>
 					{session?.user ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<button className='btn btn-ghost btn-xs rounded-full px-2 flex items-center gap-2'>
-									<div className='h-7 w-7 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-semibold'>
+								<button className='btn btn-ghost btn-xs rounded-full px-1.5 sm:px-2 flex items-center gap-1 sm:gap-2'>
+									<div className='h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-semibold'>
 										{initials}
 									</div>
 									<span className='hidden sm:inline text-xs'>
@@ -200,7 +203,7 @@ export function Navbar() {
 					) : (
 						<Link
 							href={signInHref}
-							className='btn btn-primary btn-xs rounded-full px-3'>
+							className='btn btn-primary btn-xs rounded-full px-2 sm:px-3'>
 							Sign in
 						</Link>
 					)}
