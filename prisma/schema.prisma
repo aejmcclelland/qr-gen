@@ -39,6 +39,8 @@ model User {
   avatarUploadCount   Int       @default(0)
   avatarPublicId String?
   lastAvatarUpdatedAt DateTime? // rate limiting
+  bio           String?
+  location      String?
   categoryDefaultsSeededAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

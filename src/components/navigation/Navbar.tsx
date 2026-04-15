@@ -27,6 +27,10 @@ import {
 	AVATAR_UPDATED_EVENT,
 	type AvatarUpdatedDetail,
 } from '@/lib/avatar-events';
+import {
+	PROFILE_UPDATED_EVENT,
+	type ProfileUpdatedDetail,
+} from '@/lib/profile-events';
 import { UserAvatar } from '@/components/profile/UserAvatar';
 
 type NavItem = {
@@ -42,7 +46,9 @@ export function Navbar() {
 	const { data: session } = useSession();
 	const isLoggedIn = Boolean(session?.user);
 	const sessionAvatarUrl = session?.user?.image?.trim() || null;
+	const sessionDisplayName = session?.user?.name?.trim() || 'Account';
 	const [avatarUrl, setAvatarUrl] = useState<string | null>(sessionAvatarUrl);
+	const [displayName, setDisplayName] = useState(sessionDisplayName);
 	const brandHref = isLoggedIn ? '/dashboard' : '/';
 	const signInHref =
 		pathname &&
@@ -81,18 +87,23 @@ export function Navbar() {
 				},
 			];
 
-	const initials = session?.user?.name
-		? session.user.name
+	const initials =
+		displayName && displayName !== 'Account'
+			? displayName
 				.split(' ')
 				.map((p) => p[0])
 				.join('')
 				.slice(0, 2)
 				.toUpperCase()
-		: (session?.user?.email?.[0]?.toUpperCase() ?? '?');
+			: (session?.user?.email?.[0]?.toUpperCase() ?? '?');
 
 	useEffect(() => {
 		setAvatarUrl(sessionAvatarUrl);
 	}, [sessionAvatarUrl]);
+
+	useEffect(() => {
+		setDisplayName(sessionDisplayName);
+	}, [sessionDisplayName]);
 
 	useEffect(() => {
 		function handleAvatarUpdated(event: Event) {
@@ -100,10 +111,17 @@ export function Navbar() {
 			setAvatarUrl(detail?.avatarUrl?.trim() || null);
 		}
 
+		function handleProfileUpdated(event: Event) {
+			const detail = (event as CustomEvent<ProfileUpdatedDetail>).detail;
+			setDisplayName(detail?.name?.trim() || 'Account');
+		}
+
 		window.addEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
+		window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
 
 		return () => {
 			window.removeEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
+			window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
 		};
 	}, []);
 
@@ -183,12 +201,12 @@ export function Navbar() {
 									<UserAvatar
 										src={avatarUrl}
 										initials={initials}
-										alt={`${session.user.name ?? 'Account'} avatar`}
+										alt={`${displayName} avatar`}
 										sizeClassName='h-6 w-6 sm:h-7 sm:w-7'
 										textClassName='text-xs'
 									/>
 									<span className='hidden sm:inline text-xs'>
-										{session.user.name ?? 'Account'}
+										{displayName}
 									</span>
 								</button>
 							</DropdownMenuTrigger>
