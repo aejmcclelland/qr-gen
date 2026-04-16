@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 const coreFeatures = [
 	{
@@ -38,51 +39,6 @@ const previewItems = [
 
 const libraryGroups = ['Business', 'Personal', 'Work'] as const;
 
-function MockQrSquare() {
-	const cells = [
-		true,
-		true,
-		false,
-		true,
-		false,
-		true,
-		false,
-		true,
-		false,
-		true,
-		false,
-		true,
-		true,
-		false,
-		false,
-		true,
-		false,
-		true,
-		true,
-		false,
-		false,
-		true,
-		false,
-		true,
-		true,
-	];
-
-	return (
-		<div className='grid h-16 w-16 shrink-0 grid-cols-5 gap-1 rounded-2xl border border-base-content/10 bg-base-300 p-2 shadow-inner shadow-black/10'>
-			{cells.map((filled, index) => (
-				<div
-					key={`cell-${index}-${filled}`}
-					className={
-						filled
-							? 'rounded-xs bg-base-content/80'
-							: 'rounded-xs bg-base-100/80'
-					}
-				/>
-			))}
-		</div>
-	);
-}
-
 export default function HomePage() {
 	return (
 		<div className='min-h-screen bg-base-200'>
@@ -94,9 +50,9 @@ export default function HomePage() {
 								Build a QR library, not just one-off codes
 							</h1>
 							<p className='max-w-2xl text-base leading-8 text-base-content/70 sm:text-lg'>
-								QrPilot helps you create QR codes, keep them organised by category,
-								and bring them back whenever you need to share, print, download or
-								reuse them.
+								QrPilot helps you create QR codes, keep them organised by
+								category, and bring them back whenever you need to share, print,
+								download or reuse them.
 							</p>
 						</div>
 
@@ -105,7 +61,7 @@ export default function HomePage() {
 								Generate a QR Code
 							</Link>
 							<Link href='#product-preview' className='btn btn-outline btn-lg'>
-								See the QR library
+								See how it works
 							</Link>
 						</div>
 					</div>
@@ -129,7 +85,15 @@ export default function HomePage() {
 									<div
 										key={item.name}
 										className='flex items-start gap-4 rounded-2xl border border-base-content/10 bg-base-200/70 p-4'>
-										<MockQrSquare />
+										<div className='relative h-16 w-16 shrink-0 rounded-xl p-1'>
+											<Image
+												src='/qrpilot-app/qr-code-homepage-demo-dark.png'
+												alt='Sample QR code preview'
+												fill
+												sizes='64px'
+												className='object-contain'
+											/>
+										</div>
 										<div className='min-w-0 flex-1 space-y-2'>
 											<div className='flex flex-wrap items-center gap-2'>
 												<h2 className='text-base font-semibold text-base-content'>
@@ -154,7 +118,8 @@ export default function HomePage() {
 											Keep repeat-use QR codes organised
 										</p>
 										<p className='text-sm leading-6 text-base-content/60'>
-											Open menus, Wi-Fi links and shared pages again without rebuilding them.
+											Open menus, Wi-Fi links and shared pages again without
+											rebuilding them.
 										</p>
 									</div>
 									<div className='flex flex-wrap gap-2'>
@@ -212,8 +177,8 @@ export default function HomePage() {
 								See how the QR library stays usable
 							</h2>
 							<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
-								QrPilot is built for the moments when the same QR needs to stay easy
-								to find, update, download and reuse over time.
+								QrPilot is built for the moments when the same QR needs to stay
+								easy to find, update, download and reuse over time.
 							</p>
 						</div>
 
@@ -230,21 +195,30 @@ export default function HomePage() {
 
 								<div className='space-y-3'>
 									<div className='rounded-2xl border border-base-content/10 bg-base-100 p-4'>
-										<p className='text-sm font-medium text-base-content'>Create once</p>
+										<p className='text-sm font-medium text-base-content'>
+											Create once
+										</p>
 										<p className='mt-1 text-sm leading-6 text-base-content/60'>
-											Generate a QR code for a menu, review page, event form or shared link.
+											Generate a QR code for a menu, review page, event form or
+											shared link.
 										</p>
 									</div>
 									<div className='rounded-2xl border border-base-content/10 bg-base-100 p-4'>
-										<p className='text-sm font-medium text-base-content'>Save and organise</p>
+										<p className='text-sm font-medium text-base-content'>
+											Save and organise
+										</p>
 										<p className='mt-1 text-sm leading-6 text-base-content/60'>
-											Keep it labelled and grouped so it stays easy to find later.
+											Keep it labelled and grouped so it stays easy to find
+											later.
 										</p>
 									</div>
 									<div className='rounded-2xl border border-base-content/10 bg-base-100 p-4'>
-										<p className='text-sm font-medium text-base-content'>Open again when needed</p>
+										<p className='text-sm font-medium text-base-content'>
+											Open again when needed
+										</p>
 										<p className='mt-1 text-sm leading-6 text-base-content/60'>
-											Return to the same QR for printing, downloading, sharing or updating.
+											Return to the same QR for printing, downloading, sharing
+											or updating.
 										</p>
 									</div>
 								</div>
@@ -260,7 +234,8 @@ export default function HomePage() {
 								Start your QR library
 							</h2>
 							<p className='text-base leading-7 text-base-content/65 sm:text-lg'>
-								Create a QR code, keep it organised, and bring it back whenever you need it.
+								Create a QR code, keep it organised, and bring it back whenever
+								you need it.
 							</p>
 						</div>
 
