@@ -90,11 +90,11 @@ export function Navbar() {
 	const initials =
 		displayName && displayName !== 'Account'
 			? displayName
-				.split(' ')
-				.map((p) => p[0])
-				.join('')
-				.slice(0, 2)
-				.toUpperCase()
+					.split(' ')
+					.map((p) => p[0])
+					.join('')
+					.slice(0, 2)
+					.toUpperCase()
 			: (session?.user?.email?.[0]?.toUpperCase() ?? '?');
 
 	useEffect(() => {
@@ -116,12 +116,15 @@ export function Navbar() {
 			setDisplayName(detail?.name?.trim() || 'Account');
 		}
 
-		window.addEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
-		window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+		globalThis.addEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
+		globalThis.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
 
 		return () => {
-			window.removeEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
-			window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+			globalThis.removeEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
+			globalThis.removeEventListener(
+				PROFILE_UPDATED_EVENT,
+				handleProfileUpdated,
+			);
 		};
 	}, []);
 
@@ -155,7 +158,7 @@ export function Navbar() {
             '>
 						<span className='inline-flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-primary/10'>
 							<Image
-								src='/qrpilot-app/portfolio/jumbo-qrpilot-small.svg'
+								src='/jumbo-qrpilot-small.svg'
 								alt='QrPilot logo'
 								width={64}
 								height={64}
