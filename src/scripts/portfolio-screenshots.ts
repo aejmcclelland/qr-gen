@@ -298,10 +298,12 @@ async function main() {
 	}
 
 	const shots: Shot[] = [
-		{ name: '01-vault-dashboard', path: '/qr' },
-		{ name: '02-create-qr', path: '/qr/new' },
-		{ name: '03-qr-detail', path: detailPath ?? `/q/${publicId}` },
-		{ name: '05-profile', path: '/profile' },
+		{ name: '01-homepage', path: '/' },
+		{ name: '02-dashboard', path: '/dashboard' },
+		{ name: '03-qr-library', path: '/qr' },
+		{ name: '04-create-qr', path: '/qr/new' },
+		{ name: '05-qr-detail', path: detailPath ?? `/q/${publicId}` },
+		{ name: '06-profile', path: '/profile' },
 	];
 
 	// Sanity check: if auth is working, /profile should not bounce us back to /login.
@@ -361,6 +363,23 @@ async function main() {
 	});
 	console.log('Saved 08-mobile-public-share.png');
 
+	await snap(publicPage, {
+		name: '07-public-share-page',
+		path: `/q/${publicId}`,
+	});
+	console.log('Saved 07-public-share-page.png');
+
+	await snap(publicPage, { name: '08-login', path: '/login' });
+	console.log('Saved 08-login.png');
+
+	await snap(mobileAuthPage, { name: '09-mobile-create-qr', path: '/qr/new' });
+	console.log('Saved 09-mobile-create-qr.png');
+
+	await snap(mobilePublicPage, {
+		name: '10-mobile-public-share',
+		path: `/q/${publicId}`,
+	});
+	console.log('Saved 10-mobile-public-share.png');
 	await browser.close();
 }
 
