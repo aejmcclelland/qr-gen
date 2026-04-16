@@ -156,7 +156,7 @@ export function Navbar() {
               transition-colors
               min-w-0
             '>
-						<span className='inline-flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-primary/10'>
+						<span className='inline-flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full '>
 							<Image
 								src='/jumbo-qrpilot-small.svg'
 								alt='QrPilot logo'
