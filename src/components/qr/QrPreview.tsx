@@ -7,7 +7,7 @@ type QrPreviewProps = {
 	data: string;
 };
 
-export function QrPreview({ data }: QrPreviewProps) {
+export function QrPreview({ data }: Readonly<QrPreviewProps>) {
 	return (
 		<div className='p-4 bg-base-200 rounded-xl'>
 			<QRCode
