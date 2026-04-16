@@ -87,7 +87,7 @@ export default function HomePage() {
 										className='flex items-start gap-4 rounded-2xl border border-base-content/10 bg-base-200/70 p-4'>
 										<div className='relative h-16 w-16 shrink-0 rounded-xl p-1'>
 											<Image
-												src='/qrpilot-app/qr-code-homepage-demo-dark.png'
+												src='/qr-code-homepage-demo.png'
 												alt='Sample QR code preview'
 												fill
 												sizes='64px'
