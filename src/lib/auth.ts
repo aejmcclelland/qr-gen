@@ -3,15 +3,38 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { mailer } from '@/lib/mailer';
 
-const TRUSTED_ORIGINS = [
-	'http://localhost:3000',
-	'https://qrpilot.app',
-	'https://www.qrpilot.app',
-];
-
-const AUTH_ALLOWED_HOSTS = TRUSTED_ORIGINS.map((origin) => new URL(origin).host);
+const LOCAL_PORT = process.env.PORT ?? '3000';
 const AUTH_FALLBACK_URL =
 	process.env.BETTER_AUTH_URL?.trim() || 'http://localhost:3000';
+
+function toOrigin(value?: string) {
+	if (!value?.trim()) return null;
+
+	try {
+		return new URL(value).origin;
+	} catch {
+		return null;
+	}
+}
+
+const TRUSTED_ORIGINS = Array.from(
+	new Set(
+		[
+			`http://localhost:${LOCAL_PORT}`,
+			`http://127.0.0.1:${LOCAL_PORT}`,
+			'http://localhost:3000',
+			'http://127.0.0.1:3000',
+			'https://qrpilot.app',
+			'https://www.qrpilot.app',
+			process.env.PLAYWRIGHT_BASE_URL,
+			AUTH_FALLBACK_URL,
+		]
+			.map(toOrigin)
+			.filter((origin): origin is string => Boolean(origin)),
+	),
+);
+
+const AUTH_ALLOWED_HOSTS = TRUSTED_ORIGINS.map((origin) => new URL(origin).host);
 
 export const auth = betterAuth({
 	baseURL: {

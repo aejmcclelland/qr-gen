@@ -255,6 +255,7 @@ export function QrCard ({
 
 	return (
 		<div
+			data-testid='qr-card'
 			className={`card bg-base-100 shadow-md p-4 flex w-full min-w-0 max-w-full flex-col items-center gap-3 overflow-hidden relative select-none touch-manipulation ${
 				isSelecting && isSelected
 					? 'ring ring-primary ring-offset-2 ring-offset-base-100'

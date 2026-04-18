@@ -16,16 +16,22 @@ export function QrForm({
 	return (
 		<>
 			<fieldset className='fieldset rounded-box w-full'>
-				<label className='label mt-1 mb-1'>Target URL</label>
+				<label className='label mt-1 mb-1' htmlFor='qr-target-url'>
+					Target URL
+				</label>
 				<input
+					id='qr-target-url'
 					type='url'
 					className='input w-full'
 					value={value}
 					onChange={(e) => onValueChange(e.target.value)}
 					placeholder='Paste your link here'
 				/>
-				<label className='label mb-1'>Label (optional)</label>
+				<label className='label mb-1' htmlFor='qr-label'>
+					Label (optional)
+				</label>
 				<input
+					id='qr-label'
 					type='text'
 					className='input w-full'
 					value={label}

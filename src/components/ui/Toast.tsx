@@ -42,7 +42,10 @@ export function Toast({
 	if (!show) return null;
 	return (
 		<div className={`toast ${positionClassName} z-50`}>
-			<div className={`alert shadow ${variantClass[variant]}`}>
+			<div
+				className={`alert shadow ${variantClass[variant]}`}
+				role='alert'
+				aria-live='polite'>
 				<div className='flex items-center gap-2'>
 					<span className='text-sm'>{message}</span>
 					{actions}
