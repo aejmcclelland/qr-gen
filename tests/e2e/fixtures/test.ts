@@ -8,8 +8,6 @@ import {
 import { randomUUID } from 'node:crypto';
 import { prisma } from './db';
 
-const E2E_PASSWORD = 'QrPilot-e2e-password-123!';
-
 type TestUser = {
 	email: string;
 	name: string;
@@ -45,7 +43,7 @@ function makeTestUser(testInfo: TestInfo): TestUser {
 	return {
 		email: `e2e-${testInfo.workerIndex}-${titleSlug}-${suffix}@example.com`,
 		name: `QrPilot E2E ${suffix}`,
-		password: E2E_PASSWORD,
+		password: `QrPilot-e2e-${randomUUID()}!`,
 	};
 }
 
