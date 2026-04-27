@@ -16,13 +16,39 @@ jobs:
               run: |
                   set -euo pipefail
 
-                  # Call /api/health with header auth + header notify (no query params)
-                  # -f: fail on non-2xx
-                  # -sS: silent but show errors
-                  # -D -: print response headers (useful if debugging)
-                  curl --connect-timeout 10 --max-time 20 \
-                    --location \
-                    -fSsS -D - \
-                    -H "x-cron-secret: ${HEALTH_API_SECRET}" \
-                    "https://www.qrpilot.app/api/health" \
-                    | tee /dev/stderr
+                  url="https://www.qrpilot.app/api/health"
+
+                  for attempt in 1 2 3 4 5; do
+                    echo "Attempt ${attempt}: calling ${url}"
+
+                    response_file=$(mktemp)
+                    headers_file=$(mktemp)
+
+                    status=$(curl --connect-timeout 10 --max-time 20 \
+                      --location \
+                      -sS \
+                      -o "$response_file" \
+                      -D "$headers_file" \
+                      -H "x-cron-secret: ${HEALTH_API_SECRET}" \
+                      "$url" \
+                      -w "%{http_code}")
+
+                    cat "$headers_file"
+                    cat "$response_file"
+                    echo
+
+                    rm -f "$response_file" "$headers_file"
+
+                    if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
+                      echo "Health check succeeded on attempt ${attempt}."
+                      exit 0
+                    fi
+
+                    if [ "$attempt" -lt 5 ]; then
+                      echo "Health check returned HTTP ${status}. Waiting 20 seconds before retry..."
+                      sleep 20
+                    fi
+                  done
+
+                  echo "Health check failed after 5 attempts."
+                  exit 1
