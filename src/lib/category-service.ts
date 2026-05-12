@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import {
 	DEFAULT_CATEGORY_OPTIONS,
 	sortUserCategories,
@@ -13,7 +14,7 @@ export async function ensureUserCategoriesInitialized(userId: string) {
 
 	if (!user || user.categoryDefaultsSeededAt) return;
 
-	await prisma.$transaction(async (tx) => {
+	await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
 		const currentUser = await tx.user.findUnique({
 			where: { id: userId },
 			select: { categoryDefaultsSeededAt: true },

@@ -28,8 +28,14 @@ type DashboardQr = {
 };
 
 type DashboardCategory = {
+	id: string;
 	name: string;
 	slug: string;
+};
+
+type DashboardCategoryWithUsage = DashboardCategory & {
+	isActive: boolean;
+	qrCount: number;
 };
 
 function mapRecentQrs(
@@ -76,7 +82,9 @@ async function getDashboardData(userId: string) {
 			getUserCategoriesWithUsage(userId),
 		]);
 
-	const categoryShortcuts = categories
+	const typedCategories = categories as DashboardCategoryWithUsage[];
+
+	const categoryShortcuts = typedCategories
 		.filter((category) => category.isActive && category.qrCount > 0)
 		.sort(
 			(a, b) =>
@@ -89,8 +97,8 @@ async function getDashboardData(userId: string) {
 		totalQrCodes,
 		publicQrCodes,
 		privateQrCodes: totalQrCodes - publicQrCodes,
-		totalCategories: categories.length,
-		recentQrs: mapRecentQrs(recentQrs, categories),
+		totalCategories: typedCategories.length,
+		recentQrs: mapRecentQrs(recentQrs, typedCategories),
 		categoryShortcuts,
 	};
 }
