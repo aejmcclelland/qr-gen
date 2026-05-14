@@ -27,8 +27,8 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test
-      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test?sslmode=disable
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test?sslmode=disable
       PRISMA_SKIP_POSTINSTALL_GENERATE: true
 
     steps:
