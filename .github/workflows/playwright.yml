@@ -14,7 +14,6 @@ jobs:
     services:
       postgres:
         image: postgres:16
-
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -27,13 +26,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    # Dummy value so prisma.config.ts can load during install/generate.
-    # This does NOT connect to Supabase.
     env:
-      DIRECT_URL: postgresql://user:pass@localhost:5432/postgres
-      DATABASE_URL: postgresql://user:pass@localhost:5432/postgres
-      # Optional: avoid prisma postinstall generate if you don't need it in CI
-      PRISMA_SKIP_POSTINSTALL_GENERATE: "true"
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test
+      PRISMA_SKIP_POSTINSTALL_GENERATE: true
 
     steps:
       - uses: actions/checkout@v4
@@ -52,16 +48,19 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm prisma generate
+
       - name: Push database schema
         run: pnpm prisma db push
+
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
       # Force HTML report output so playwright-report/ exists
       - name: Run Playwright tests
+
         run: pnpm exec playwright test --reporter=html
 
-      # Upload report even if tests fail
+        # Upload report even if tests fail
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
