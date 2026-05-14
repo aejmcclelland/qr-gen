@@ -2,6 +2,8 @@
 
 # QRpilot
 
+[![Playwright Tests](https://github.com/andrewmcclelland/qr-gen/actions/workflows/playwright.yml/badge.svg)](https://github.com/andrewmcclelland/qr-gen/actions/workflows/playwright.yml)
+
 QRpilot is a full-stack QR code management app built as a portfolio project. It is designed for users who want to create, save, organise, share, and manage QR codes from one account rather than generating one-off QR codes each time.
 
 ## Features

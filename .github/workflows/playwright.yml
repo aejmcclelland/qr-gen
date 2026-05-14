@@ -11,6 +11,22 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qrpilot_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     # Dummy value so prisma.config.ts can load during install/generate.
     # This does NOT connect to Supabase.
     env:
@@ -34,6 +50,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+      - name: Push database schema
+        run: pnpm prisma db push
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
