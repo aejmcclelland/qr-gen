@@ -24,8 +24,6 @@ jobs:
 
       # Install pnpm properly (adds it to PATH)
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       # Node + pnpm cache
       - uses: actions/setup-node@v4
