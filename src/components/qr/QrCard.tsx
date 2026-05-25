@@ -416,6 +416,7 @@ export function QrCard ({
 							</button>
 
 							<QrCardActions
+								qrId={qr.id}
 								onEdit={onStartEdit}
 								onDelete={onDelete}
 								onDownloadPng={onDownloadPng}

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
 	DropdownMenu,
 	DropdownMenuTrigger,
@@ -8,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 type QrCardActionsProps = {
+	qrId: string;
 	onEdit: () => void;
 	onDelete: () => void;
 	onDownloadPng: () => void;
@@ -18,6 +20,7 @@ type QrCardActionsProps = {
 };
 
 export function QrCardActions({
+	qrId,
 	onEdit,
 	onDelete,
 	onDownloadPng,
@@ -58,6 +61,9 @@ export function QrCardActions({
 				<div className='px-2 pb-1 text-[11px] font-semibold text-primary'>
 					Manage
 				</div>
+				<DropdownMenuItem asChild>
+					<Link href={`/qr/${qrId}`}>Manage</Link>
+				</DropdownMenuItem>
 				<DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
 
 				<div className='my-2 h-px bg-base-100/10' />
