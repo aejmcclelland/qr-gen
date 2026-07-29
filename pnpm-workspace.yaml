@@ -11,4 +11,4 @@ overrides:
   fast-xml-parser: '>=5.3.4'
   hono: '>=4.11.7'
   lodash: '>=4.17.23'
-  postcss: 8.5.17
+  postcss: 8.5.23
