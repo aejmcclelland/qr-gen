@@ -5,7 +5,7 @@ allowBuilds:
   prisma: true
   sharp: true
   unrs-resolver: true
-
+  
 overrides:
   '@hono/node-server': 1.19.13
   fast-xml-parser: '>=5.3.4'
