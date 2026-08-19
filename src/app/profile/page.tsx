@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
@@ -24,14 +24,28 @@ export default function ProfilePage() {
 	const { data: session } = useSession();
 	const sessionDisplayName =
 		session?.user?.name || session?.user?.email?.split('@')[0] || 'Your name';
-	const [displayName, setDisplayName] = useState(sessionDisplayName);
+	const [displayNameState, setDisplayNameState] = useState<{
+		sessionValue: string;
+		value: string;
+	}>({
+		sessionValue: sessionDisplayName,
+		value: sessionDisplayName,
+	});
 
-	useEffect(() => {
-		setDisplayName(sessionDisplayName);
-	}, [sessionDisplayName]);
+	if (displayNameState.sessionValue !== sessionDisplayName) {
+		setDisplayNameState({
+			sessionValue: sessionDisplayName,
+			value: sessionDisplayName,
+		});
+	}
+
+	const displayName =
+		displayNameState.sessionValue === sessionDisplayName
+			? displayNameState.value
+			: sessionDisplayName;
 
 	const handleNameChange = useCallback((name: string) => {
-		setDisplayName(name);
+		setDisplayNameState((current) => ({ ...current, value: name }));
 	}, []);
 
 	// If not logged in, show a prompt to sign in

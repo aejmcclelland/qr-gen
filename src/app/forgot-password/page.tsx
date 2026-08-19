@@ -16,7 +16,6 @@ export default function ForgotPage() {
 	useEffect(() => {
 		if (!sent) return;
 
-		setSecondsLeft(5);
 		const interval = setInterval(() => {
 			setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
 		}, 1000);

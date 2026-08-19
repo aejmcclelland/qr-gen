@@ -47,8 +47,37 @@ export function Navbar() {
 	const isLoggedIn = Boolean(session?.user);
 	const sessionAvatarUrl = session?.user?.image?.trim() || null;
 	const sessionDisplayName = session?.user?.name?.trim() || 'Account';
-	const [avatarUrl, setAvatarUrl] = useState<string | null>(sessionAvatarUrl);
-	const [displayName, setDisplayName] = useState(sessionDisplayName);
+	const [avatarState, setAvatarState] = useState<{
+		sessionValue: string | null;
+		value: string | null;
+	}>({ sessionValue: sessionAvatarUrl, value: sessionAvatarUrl });
+	const [displayNameState, setDisplayNameState] = useState<{
+		sessionValue: string;
+		value: string;
+	}>({ sessionValue: sessionDisplayName, value: sessionDisplayName });
+
+	if (avatarState.sessionValue !== sessionAvatarUrl) {
+		setAvatarState({
+			sessionValue: sessionAvatarUrl,
+			value: sessionAvatarUrl,
+		});
+	}
+
+	if (displayNameState.sessionValue !== sessionDisplayName) {
+		setDisplayNameState({
+			sessionValue: sessionDisplayName,
+			value: sessionDisplayName,
+		});
+	}
+
+	const avatarUrl =
+		avatarState.sessionValue === sessionAvatarUrl
+			? avatarState.value
+			: sessionAvatarUrl;
+	const displayName =
+		displayNameState.sessionValue === sessionDisplayName
+			? displayNameState.value
+			: sessionDisplayName;
 	const brandHref = isLoggedIn ? '/dashboard' : '/';
 	const signInHref =
 		pathname &&
@@ -98,22 +127,20 @@ export function Navbar() {
 			: (session?.user?.email?.[0]?.toUpperCase() ?? '?');
 
 	useEffect(() => {
-		setAvatarUrl(sessionAvatarUrl);
-	}, [sessionAvatarUrl]);
-
-	useEffect(() => {
-		setDisplayName(sessionDisplayName);
-	}, [sessionDisplayName]);
-
-	useEffect(() => {
 		function handleAvatarUpdated(event: Event) {
 			const detail = (event as CustomEvent<AvatarUpdatedDetail>).detail;
-			setAvatarUrl(detail?.avatarUrl?.trim() || null);
+			setAvatarState((current) => ({
+				...current,
+				value: detail?.avatarUrl?.trim() || null,
+			}));
 		}
 
 		function handleProfileUpdated(event: Event) {
 			const detail = (event as CustomEvent<ProfileUpdatedDetail>).detail;
-			setDisplayName(detail?.name?.trim() || 'Account');
+			setDisplayNameState((current) => ({
+				...current,
+				value: detail?.name?.trim() || 'Account',
+			}));
 		}
 
 		globalThis.addEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);

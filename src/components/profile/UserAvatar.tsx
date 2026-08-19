@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type UserAvatarProps = {
 	readonly src?: string | null;
@@ -18,11 +18,16 @@ export function UserAvatar({
 	textClassName = 'text-xl',
 }: UserAvatarProps) {
 	const avatarSrc = src?.trim() || null;
-	const [imageFailed, setImageFailed] = useState(false);
+	const [imageStatus, setImageStatus] = useState({
+		src: avatarSrc,
+		failed: false,
+	});
 
-	useEffect(() => {
-		setImageFailed(false);
-	}, [avatarSrc]);
+	if (imageStatus.src !== avatarSrc) {
+		setImageStatus({ src: avatarSrc, failed: false });
+	}
+
+	const imageFailed = imageStatus.src === avatarSrc && imageStatus.failed;
 
 	return (
 		<div
@@ -32,7 +37,7 @@ export function UserAvatar({
 					src={avatarSrc}
 					alt={alt}
 					className='h-full w-full object-cover'
-					onError={() => setImageFailed(true)}
+					onError={() => setImageStatus({ src: avatarSrc, failed: true })}
 				/>
 			) : (
 				<div

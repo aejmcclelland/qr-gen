@@ -3,20 +3,28 @@
 import { useEffect, useState } from 'react';
 import { sortUserCategories, type UserCategory } from '@/lib/categories';
 
+type UserCategoriesState = {
+	enabled: boolean;
+	categories: UserCategory[];
+	isLoaded: boolean;
+};
+
 export function useUserCategories(enabled = true) {
-	const [categories, setCategories] = useState<UserCategory[]>([]);
-	const [isLoaded, setIsLoaded] = useState(!enabled);
+	const [state, setState] = useState<UserCategoriesState>({
+		enabled,
+		categories: [],
+		isLoaded: !enabled,
+	});
+
+	if (state.enabled !== enabled) {
+		setState({ enabled, categories: [], isLoaded: !enabled });
+	}
 
 	useEffect(() => {
-		if (!enabled) {
-			setCategories([]);
-			setIsLoaded(true);
-			return;
-		}
+		if (!enabled) return;
 
 		let isMounted = true;
 		const controller = new AbortController();
-		setIsLoaded(false);
 
 		async function loadUserCategories() {
 			try {
@@ -27,8 +35,7 @@ export function useUserCategories(enabled = true) {
 
 				if (res.status === 401 || !res.ok) {
 					if (isMounted) {
-						setCategories([]);
-						setIsLoaded(true);
+						setState({ enabled, categories: [], isLoaded: true });
 					}
 					return;
 				}
@@ -38,8 +45,11 @@ export function useUserCategories(enabled = true) {
 				};
 
 				if (isMounted) {
-					setCategories(sortUserCategories(data.categories ?? []));
-					setIsLoaded(true);
+					setState({
+						enabled,
+						categories: sortUserCategories(data.categories ?? []),
+						isLoaded: true,
+					});
 				}
 			} catch (error) {
 				if (
@@ -47,8 +57,7 @@ export function useUserCategories(enabled = true) {
 					error instanceof DOMException &&
 					error.name !== 'AbortError'
 				) {
-					setCategories([]);
-					setIsLoaded(true);
+					setState({ enabled, categories: [], isLoaded: true });
 				}
 			}
 		}
@@ -61,5 +70,5 @@ export function useUserCategories(enabled = true) {
 		};
 	}, [enabled]);
 
-	return { categories, isLoaded };
+	return { categories: state.categories, isLoaded: state.isLoaded };
 }
