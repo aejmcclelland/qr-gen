@@ -27,9 +27,11 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test?sslmode=disable
-      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test?sslmode=disable
-      PRISMA_SKIP_POSTINSTALL_GENERATE: true
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test?sslmode=disable
+  DIRECT_URL: postgresql://postgres:postgres@localhost:5432/qrpilot_test?sslmode=disable
+  PRISMA_SKIP_POSTINSTALL_GENERATE: true
+  BETTER_AUTH_SECRET: playwright-test-secret-must-be-at-least-32-characters
+  BETTER_AUTH_URL: http://localhost:3000
 
     steps:
       - uses: actions/checkout@v4
