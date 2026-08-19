@@ -35,6 +35,8 @@ export function UserAvatar({
 			className={`${sizeClassName} overflow-hidden rounded-full bg-primary text-primary-content`}>
 			{avatarSrc && !imageFailed ? (
 				<Image
+					width={100}
+					height={100}
 					src={avatarSrc}
 					alt={alt}
 					className='h-full w-full object-cover'
