@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@/generated/prisma/client';
 import {
 	DEFAULT_CATEGORY_OPTIONS,
 	sortUserCategories,
 	toUserCategoryPayload,
 } from '@/lib/categories';
+import { prisma } from '@/lib/prisma';
 
 export async function ensureUserCategoriesInitialized(userId: string) {
 	const user = await prisma.user.findUnique({
