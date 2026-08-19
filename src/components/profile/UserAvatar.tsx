@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 type UserAvatarProps = {
 	readonly src?: string | null;
@@ -33,7 +34,7 @@ export function UserAvatar({
 		<div
 			className={`${sizeClassName} overflow-hidden rounded-full bg-primary text-primary-content`}>
 			{avatarSrc && !imageFailed ? (
-				<img
+				<Image
 					src={avatarSrc}
 					alt={alt}
 					className='h-full w-full object-cover'

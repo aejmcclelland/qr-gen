@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
 		'test-results/**',
 		'src/generated/prisma/**',
 	]),
+	{
+		files: ['tests/e2e/**/*.ts'],
+		rules: {
+			'react-hooks/rules-of-hooks': 'off',
+		},
+	},
 ]);
 
 export default eslintConfig;

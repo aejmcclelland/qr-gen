@@ -321,7 +321,6 @@ async function main() {
 
 	for (const s of shots) {
 		await snap(page, s);
-		// eslint-disable-next-line no-console
 		console.log(`Saved ${s.name}.png`);
 	}
 
