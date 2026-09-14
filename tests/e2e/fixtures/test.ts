@@ -26,6 +26,7 @@ export type CreatedQr = {
 type Fixtures = {
 	testUser: TestUser;
 	authedPage: Page;
+	hydrationErrors: void;
 };
 
 function slugify(value: string) {
@@ -127,6 +128,22 @@ export function uniqueName(prefix: string) {
 }
 
 export const test = base.extend<Fixtures>({
+	hydrationErrors: [async ({ page }, use) => {
+		const errors: string[] = [];
+		const recordError = (message: string) => {
+			if (/hydration|hydrating|server rendered HTML|didn't match/i.test(message)) {
+				errors.push(message);
+			}
+		};
+		page.on('pageerror', (error) => recordError(error.message));
+		page.on('console', (message) => {
+			if (message.type() === 'error') recordError(message.text());
+		});
+
+		await use();
+		expect(errors, 'Browser hydration errors').toEqual([]);
+	}, { auto: true }],
+
 	testUser: async ({}, use, testInfo) => {
 		const user = makeTestUser(testInfo);
 

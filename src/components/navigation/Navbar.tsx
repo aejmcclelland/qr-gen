@@ -1,159 +1,64 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-	QrCode,
-	PlusCircle,
-	List,
-	User,
-	LogOut,
-	LayoutDashboard,
-	Tags,
-} from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { PlusCircle, List, LayoutDashboard, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
-import { useSession, signOut } from '@/lib/auth-client';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuLabel,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { LucideIcon } from 'lucide-react';
-import {
-	AVATAR_UPDATED_EVENT,
-	type AvatarUpdatedDetail,
-} from '@/lib/avatar-events';
-import {
-	PROFILE_UPDATED_EVENT,
-	type ProfileUpdatedDetail,
-} from '@/lib/profile-events';
-import { UserAvatar } from '@/components/profile/UserAvatar';
+import { authClient, useSession } from '@/lib/auth-client';
+import { AccountMenu } from './AccountMenu';
+
+type NavbarProps = {
+	readonly initialSession: typeof authClient.$Infer.Session | null;
+};
 
 type NavItem = {
 	href: string;
 	label: string;
 	icon: LucideIcon;
-	isActive: (pathname: string) => boolean;
 };
 
-export function Navbar() {
-	const pathname = usePathname();
-	const router = useRouter();
-	const { data: session } = useSession();
-	const isLoggedIn = Boolean(session?.user);
-	const sessionAvatarUrl = session?.user?.image?.trim() || null;
-	const sessionDisplayName = session?.user?.name?.trim() || 'Account';
-	const [avatarState, setAvatarState] = useState<{
-		sessionValue: string | null;
-		value: string | null;
-	}>({ sessionValue: sessionAvatarUrl, value: sessionAvatarUrl });
-	const [displayNameState, setDisplayNameState] = useState<{
-		sessionValue: string;
-		value: string;
-	}>({ sessionValue: sessionDisplayName, value: sessionDisplayName });
+const publicNavItems: NavItem[] = [
+	{ href: '/qr/new', label: 'New QR', icon: PlusCircle },
+];
+const authenticatedNavItems: NavItem[] = [
+	{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+	...publicNavItems,
+	{ href: '/qr', label: 'My QRs', icon: List },
+];
 
-	if (avatarState.sessionValue !== sessionAvatarUrl) {
-		setAvatarState({
-			sessionValue: sessionAvatarUrl,
-			value: sessionAvatarUrl,
-		});
-	}
+const subscribeToHydration = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
-	if (displayNameState.sessionValue !== sessionDisplayName) {
-		setDisplayNameState({
-			sessionValue: sessionDisplayName,
-			value: sessionDisplayName,
-		});
-	}
-
-	const avatarUrl =
-		avatarState.sessionValue === sessionAvatarUrl
-			? avatarState.value
-			: sessionAvatarUrl;
-	const displayName =
-		displayNameState.sessionValue === sessionDisplayName
-			? displayNameState.value
-			: sessionDisplayName;
-	const brandHref = isLoggedIn ? '/dashboard' : '/';
-	const signInHref =
-		pathname &&
-		pathname !== '/' &&
-		pathname !== '/login' &&
-		pathname !== '/signup'
-			? `/login?callbackURL=${encodeURIComponent(pathname)}`
-			: '/login';
-	const navItems: NavItem[] = isLoggedIn
-		? [
-				{
-					href: '/dashboard',
-					label: 'Dashboard',
-					icon: LayoutDashboard,
-					isActive: (currentPath) => currentPath === '/dashboard',
-				},
-				{
-					href: '/qr/new',
-					label: 'New QR',
-					icon: PlusCircle,
-					isActive: (currentPath) => currentPath === '/qr/new',
-				},
-				{
-					href: '/qr',
-					label: 'My QRs',
-					icon: List,
-					isActive: (currentPath) => currentPath === '/qr',
-				},
-			]
-		: [
-				{
-					href: '/qr/new',
-					label: 'New QR',
-					icon: PlusCircle,
-					isActive: (currentPath) => currentPath === '/qr/new',
-				},
-			];
-
-	const initials =
-		displayName && displayName !== 'Account'
-			? displayName
-					.split(' ')
-					.map((p) => p[0])
-					.join('')
-					.slice(0, 2)
-					.toUpperCase()
-			: (session?.user?.email?.[0]?.toUpperCase() ?? '?');
+function useNavbarSession(initialSession: NavbarProps['initialSession']) {
+	const { data, isPending, isRefetching } = useSession();
+	const hydrated = useSyncExternalStore(
+		subscribeToHydration,
+		getClientSnapshot,
+		getServerSnapshot,
+	);
 
 	useEffect(() => {
-		function handleAvatarUpdated(event: Event) {
-			const detail = (event as CustomEvent<AvatarUpdatedDetail>).detail;
-			setAvatarState((current) => ({
-				...current,
-				value: detail?.avatarUrl?.trim() || null,
-			}));
-		}
+		// Better Auth seeds its store only once; no store writes during render.
+		authClient.hydrateSession(initialSession);
+	}, [initialSession]);
 
-		function handleProfileUpdated(event: Event) {
-			const detail = (event as CustomEvent<ProfileUpdatedDetail>).detail;
-			setDisplayNameState((current) => ({
-				...current,
-				value: detail?.name?.trim() || 'Account',
-			}));
-		}
+	// SSR and hydration always use the same prop, even if the client store is
+	// already populated. After hydration, null is a valid signed-out session.
+	return !hydrated || (isPending && !isRefetching) ? initialSession : data;
+}
 
-		globalThis.addEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
-		globalThis.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
-
-		return () => {
-			globalThis.removeEventListener(AVATAR_UPDATED_EVENT, handleAvatarUpdated);
-			globalThis.removeEventListener(
-				PROFILE_UPDATED_EVENT,
-				handleProfileUpdated,
-			);
-		};
-	}, []);
+export function Navbar({ initialSession }: NavbarProps) {
+	const pathname = usePathname();
+	const session = useNavbarSession(initialSession);
+	const user = session?.user;
+	const brandHref = user ? '/dashboard' : '/';
+	const navItems = user ? authenticatedNavItems : publicNavItems;
+	const signInHref =
+		pathname && pathname !== '/' && pathname !== '/login' && pathname !== '/signup'
+			? `/login?callbackURL=${encodeURIComponent(pathname)}`
+			: '/login';
 
 	return (
 		<header className='fixed top-4 left-0 right-0 z-40 flex justify-center px-4'>
@@ -213,7 +118,7 @@ export function Navbar() {
                 btn btn-ghost btn-xs rounded-full px-2 sm:px-3
                 flex items-center gap-1
                 min-w-0
-                ${item.isActive(pathname) ? 'bg-base-200' : ''}
+                ${pathname === item.href ? 'bg-base-200' : ''}
               `}>
 									<Icon className='h-6 w-6' />
 									<span className='hidden sm:inline text-xs'>{item.label}</span>
@@ -224,59 +129,12 @@ export function Navbar() {
 				</div>
 
 				<div className='flex-none shrink-0 flex items-center gap-1 sm:gap-2'>
-					{session?.user ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<button className='btn btn-ghost btn-xs rounded-full px-1.5 sm:px-2 flex items-center gap-1 sm:gap-2'>
-									<UserAvatar
-										src={avatarUrl}
-										initials={initials}
-										alt={`${displayName} avatar`}
-										sizeClassName='h-6 w-6 sm:h-7 sm:w-7'
-										textClassName='text-xs'
-									/>
-									<span className='hidden sm:inline text-xs'>
-										{displayName}
-									</span>
-								</button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align='end' className='w-52 bg-base-100'>
-								<DropdownMenuLabel>Signed in</DropdownMenuLabel>
-								{session.user.email && (
-									<div className='px-2 pb-2 text-xs text-base-content/70 break-all'>
-										{session.user.email}
-									</div>
-								)}
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => router.push('/profile')}>
-									<User className='mr-2 h-4 w-4' />
-									Profile
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => router.push('/qr')}>
-									<QrCode className='text-primary mr-2 h-4 w-4' />
-									My QRs
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={() => router.push('/categories')}>
-									<Tags className='text-primary mr-2 h-4 w-4' />
-									Categories
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={async () => {
-										await signOut({
-											fetchOptions: {
-												onSuccess: () => {
-													router.push('/');
-												},
-											},
-										});
-									}}>
-									<LogOut className='text-error mr-2 h-4 w-4' />
-									Log out
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+					{user ? (
+						<AccountMenu
+							// A new session profile clears any old event overrides.
+							key={JSON.stringify([user.id, user.name, user.image])}
+							user={user}
+						/>
 					) : (
 						<Link
 							href={signInHref}
