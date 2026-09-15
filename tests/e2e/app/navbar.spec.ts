@@ -117,13 +117,40 @@ test('profile name and avatar changes immediately update the navbar', async ({ a
 	await expect(nav.getByRole('button')).toContainText(name);
 });
 
-test('an expired client session replaces the initial authenticated navbar', async ({ page, testUser }) => {
-	await signUpWithEmail(page, testUser);
-	await page.route('**/api/auth/get-session**', (route) => route.fulfill({ json: null }));
-	await page.goto('/');
+test('logout in another tab replaces the initial authenticated navbar', async ({
+	authedPage: page, testUser,
+}) => {
 	const nav = page.getByRole('navigation');
-	await expect(nav.getByRole('link', { name: 'Sign in' })).toBeVisible();
-	await expect(nav.getByRole('link', { name: 'Dashboard', exact: true })).toHaveCount(0);
-	await nav.getByRole('link', { name: 'New QR', exact: true }).click();
-	await expect(nav.getByRole('link', { name: 'Sign in' })).toBeVisible();
+	// Confirm this navbar has hydrated before invalidating its real session.
+	await nav.getByRole('button', { name: new RegExp(testUser.name) }).click();
+	await expect(page.getByRole('menu')).toContainText(testUser.email);
+	await page.keyboard.press('Escape');
+
+	const otherTab = await page.context().newPage();
+	try {
+		await otherTab.goto('/');
+		await otherTab.getByRole('navigation').getByRole('button', {
+			name: new RegExp(testUser.name),
+		}).click();
+
+		// Better Auth revokes the shared session and broadcasts the logout. The
+		// original tab must accept the real null response without a page reload.
+		await Promise.all([
+			page.waitForResponse(async (response) =>
+				new URL(response.url()).pathname === '/api/auth/get-session' &&
+				response.ok() && (await response.json()) === null,
+			),
+			otherTab.getByRole('menuitem', { name: 'Log out', exact: true }).click(),
+		]);
+		await expect(nav.getByRole('link', { name: 'Sign in' })).toBeVisible();
+		await expect(nav.getByRole('link', { name: 'Dashboard', exact: true })).toHaveCount(0);
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(nav.getByRole('link', { name: /QrPilot logo/ })).toHaveAttribute('href', '/');
+
+		await nav.getByRole('link', { name: 'New QR', exact: true }).click();
+		await expect(page).toHaveURL(/\/qr\/new$/);
+		await expect(nav.getByRole('link', { name: 'Sign in' })).toBeVisible();
+	} finally {
+		await otherTab.close();
+	}
 });
