@@ -62,6 +62,9 @@ cp .env.example .env.local
 
 Then add the required values for your local setup.
 
+## Developer documentation
+
+- [Authentication](docs/authentication.md)
 ## Current status
 
 QRpilot is not intended to be a finished commercial SaaS product. It is a working full-stack portfolio project focused on demonstrating real application structure, authentication, database-backed user data, QR management features, testing, and deployment-ready patterns.
