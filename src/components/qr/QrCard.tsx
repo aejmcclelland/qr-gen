@@ -11,6 +11,7 @@ import {
 import { Toast } from '@/components/ui/Toast';
 import { QRCode as ClientQRCode } from '@/components/ui/shadcn-io/qr-code';
 import { QrCardActions } from '@/components/qr/QrCardActions';
+import { QrImageDialog } from '@/components/qr/QrImageDialog';
 import { useQrExport } from '@/hooks/useQrExport';
 import { Copy, ExternalLink, Share } from 'lucide-react';
 import { IsPublicToggle } from '@/components/qr/IsPublicToggle';
@@ -89,6 +90,7 @@ export function QrCard ({
 	onTogglePublic,
 }: QrCardProps) {
 	const qrRenderRef = useRef<HTMLDivElement | null>(null);
+	const [previewRoot, setPreviewRoot] = useState<HTMLElement | null>(null);
 
 	const [toast, setToast] = useState<{
 		show: boolean;
@@ -121,7 +123,7 @@ export function QrCard ({
 		[toast.show, toast.message, toast.variant],
 	);
 
-	const { downloadPng, downloadJpg, print } = useQrExport({
+	const { filename, downloadPng, downloadJpg, print } = useQrExport({
 		rootRef: qrRenderRef,
 		label: qr.label,
 		id: qr.id,
@@ -263,6 +265,14 @@ export function QrCard ({
 					? 'ring ring-primary ring-offset-2 ring-offset-base-100'
 					: ''
 			}`}>
+			{previewRoot ? (
+				<QrImageDialog
+					rootElement={previewRoot}
+					filename={filename}
+					label={qr.label || 'QR image'}
+					onClose={() => setPreviewRoot(null)}
+				/>
+			) : null}
 			<Toast
 				show={toast.show}
 				message={toast.message}
@@ -423,6 +433,7 @@ export function QrCard ({
 								onDelete={onDelete}
 								onDownloadPng={onDownloadPng}
 								onDownloadJpg={onDownloadJpg}
+								onPreview={() => setPreviewRoot(qrRenderRef.current)}
 								onPrint={onPrint}
 								createdAt={qr.createdAt}
 								showPrint={!isIosSafari()}

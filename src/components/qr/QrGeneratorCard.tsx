@@ -16,6 +16,7 @@ import { QrForm } from '@/components/qr/QrForm';
 import { QrPreview } from './QrPreview';
 import { QrPlaceholder } from './QrPlaceholder';
 import { CategorySelect } from './CategorySelect';
+import { QrImageDialog } from './QrImageDialog';
 
 const CANVAS_SIZE = 512;
 const PDF_QR_SIZE = 256;
@@ -42,6 +43,7 @@ export function QrGeneratorCard() {
 	const [showAuthActions, setShowAuthActions] = useState(false);
 	const [showToast, setShowToast] = useState(false);
 	const [category, setCategory] = useState('personal');
+	const [previewRoot, setPreviewRoot] = useState<HTMLElement | null>(null);
 
 	const [toastVariant, setToastVariant] = useState<
 		'info' | 'success' | 'error' | 'warning'
@@ -193,6 +195,14 @@ export function QrGeneratorCard() {
 
 	return (
 		<div className='card bg-base-100 shadow-xl max-w-md w-full'>
+			{previewRoot ? (
+				<QrImageDialog
+					rootElement={previewRoot}
+					filename='qr-code'
+					label={label || 'QR image'}
+					onClose={() => setPreviewRoot(null)}
+				/>
+			) : null}
 			<div className='card-body space-y-4'>
 				<h1 className='card-title text-2xl'>QR Code Generator</h1>
 				<div className='space-y-1 w-full'>
@@ -220,6 +230,17 @@ export function QrGeneratorCard() {
 					{qrValue ? <QrPreview data={qrValue} /> : <QrPlaceholder />}
 
 					<div className='flex flex-wrap gap-2 justify-center'>
+						<button
+							type='button'
+							className='btn btn-outline btn-sm'
+							disabled={!qrValue}
+							onClick={() => {
+								if (enforceGuestLimit(value)) {
+									setPreviewRoot(document.getElementById('qr-svg'));
+								}
+							}}>
+							Preview &amp; share
+						</button>
 						<button
 							type='button'
 							className='btn btn-primary btn-sm'
