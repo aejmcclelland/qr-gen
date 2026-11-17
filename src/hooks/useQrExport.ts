@@ -53,7 +53,7 @@ export function useQrExport({
 			.toLowerCase()
 			.replace(/\s+/g, '-')
 			.replace(/[^a-z0-9-_]/g, '')
-			.slice(0, 40);
+			.slice(0, 40) || `qr-${id}`;
 	}, [label, id]);
 
 	const exportCanvas = async () => {
@@ -66,12 +66,12 @@ export function useQrExport({
 
 	const downloadPng = async () => {
 		const canvas = await exportCanvas();
-		downloadCanvasAsPng(canvas, filename);
+		await downloadCanvasAsPng(canvas, filename);
 	};
 
 	const downloadJpg = async (quality = 0.92) => {
 		const canvas = await exportCanvas();
-		downloadCanvasAsJpg(canvas, filename, quality);
+		await downloadCanvasAsJpg(canvas, filename, quality);
 	};
 
 	const print = async () => {

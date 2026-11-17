@@ -51,11 +51,10 @@ export async function resolveQrCanvasFromElement(
 			const img = new Image();
 			img.decoding = 'async';
 			img.crossOrigin = 'anonymous';
-			img.src = blobUrl;
-
 			await new Promise<void>((resolve, reject) => {
 				img.onload = () => resolve();
 				img.onerror = () => reject(new Error('Failed to load SVG'));
+				img.src = blobUrl;
 			});
 
 			const canvas = document.createElement('canvas');
@@ -100,13 +99,6 @@ export async function resolveQrCanvasFromElement(
 
 export function canvasToDataUrlPng(canvas: HTMLCanvasElement): string {
 	return canvas.toDataURL('image/png');
-}
-
-export function canvasToDataUrlJpg(
-	canvas: HTMLCanvasElement,
-	quality = 0.92,
-): string {
-	return canvas.toDataURL('image/jpeg', quality);
 }
 
 export function canvasToBlob(
@@ -167,29 +159,37 @@ export async function shareFiles(params: {
 	await navigator.share(data);
 }
 
-export function downloadDataUrl(dataUrl: string, filename: string) {
+export function downloadBlob(blob: Blob, filename: string) {
+	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
-	a.href = dataUrl;
+	a.href = url;
 	a.download = filename;
 	a.rel = 'noopener';
 	document.body.appendChild(a);
-	a.click();
-	a.remove();
+	try {
+		a.click();
+	} finally {
+		a.remove();
+		// The browser may read the file after the user responds to its download prompt.
+		window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+	}
 }
 
-export function downloadCanvasAsPng(
+export async function downloadCanvasAsPng(
 	canvas: HTMLCanvasElement,
 	filenameBase: string,
 ) {
-	downloadDataUrl(canvasToDataUrlPng(canvas), `${filenameBase}.png`);
+	const blob = await canvasToBlob(canvas);
+	downloadBlob(blob, `${filenameBase}.png`);
 }
 
-export function downloadCanvasAsJpg(
+export async function downloadCanvasAsJpg(
 	canvas: HTMLCanvasElement,
 	filenameBase: string,
 	quality = 0.92,
 ) {
-	downloadDataUrl(canvasToDataUrlJpg(canvas, quality), `${filenameBase}.jpg`);
+	const blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+	downloadBlob(blob, `${filenameBase}.jpg`);
 }
 
 /**

@@ -133,16 +133,18 @@ export function QrCard ({
 			await downloadPng();
 		} catch (err) {
 			console.error(err);
+			showToast('Could not prepare the PNG download. Please try again.', 'error');
 		}
-	}, [downloadPng]);
+	}, [downloadPng, showToast]);
 
 	const onDownloadJpg = useCallback(async () => {
 		try {
 			await downloadJpg(0.92);
 		} catch (err) {
 			console.error(err);
+			showToast('Could not prepare the JPG download. Please try again.', 'error');
 		}
-	}, [downloadJpg]);
+	}, [downloadJpg, showToast]);
 
 	const onPrint = useCallback(() => {
 		// Important: don't return a Promise from an onClick handler used by the dropdown.

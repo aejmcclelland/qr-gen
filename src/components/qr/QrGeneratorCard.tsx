@@ -6,6 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import jsPDF from 'jspdf';
 import { checkGuestQrLimit } from '@/lib/guest-use';
+import {
+	downloadBlob,
+	downloadCanvasAsPng,
+	resolveQrCanvasFromElement,
+} from '@/lib/qrExport';
 import { Toast } from '@/components/ui/Toast';
 import { QrForm } from '@/components/qr/QrForm';
 import { QrPreview } from './QrPreview';
@@ -25,43 +30,6 @@ const ALREADY_CREATED_THIS_QR_CODE =
 	'You’ve already saved a QR for this URL. Open ‘My QRs’ to view it, or enter a different URL.';
 
 const CALLBACK_URL = '/qr';
-
-async function makeCanvasFromSvg(svgId: string) {
-	const container = document.getElementById(svgId);
-	if (!container) return null;
-
-	const svg = container.querySelector('svg');
-	if (!svg) return null;
-
-	const serializer = new XMLSerializer();
-	const svgString = serializer.serializeToString(svg);
-	const svgBlob = new Blob([svgString], {
-		type: 'image/svg+xml;charset=utf-8',
-	});
-	const url = URL.createObjectURL(svgBlob);
-	const img = new Image();
-
-	const canvas = document.createElement('canvas');
-	canvas.width = CANVAS_SIZE;
-	canvas.height = CANVAS_SIZE;
-
-	await new Promise<void>((resolve) => {
-		img.onload = () => {
-			const ctx = canvas.getContext('2d');
-			if (!ctx) return resolve();
-
-			ctx.fillStyle = 'white';
-			ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-			ctx.drawImage(img, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-			URL.revokeObjectURL(url);
-			resolve();
-		};
-		img.src = url;
-	});
-
-	return canvas;
-}
 
 export function QrGeneratorCard() {
 	const [value, setValue] = useState('');
@@ -120,42 +88,35 @@ export function QrGeneratorCard() {
 		setQrValue(next);
 	};
 
-	const downloadPng = async () => {
-		if (!enforceGuestLimit(value)) {
+	const downloadQr = async (format: 'PNG' | 'PDF') => {
+		if (!qrValue || !enforceGuestLimit(value)) {
 			return;
 		}
 
-		const canvas = await makeCanvasFromSvg('qr-svg');
-		if (!canvas) return;
+		try {
+			const preview = document.getElementById('qr-svg');
+			if (!preview) throw new Error('QR preview is not available');
+			const canvas = await resolveQrCanvasFromElement(preview, {
+				size: CANVAS_SIZE,
+			});
 
-		const pngUrl = canvas.toDataURL('image/png');
-		const link = document.createElement('a');
-		link.href = pngUrl;
-		link.download = 'qr-code.png';
-		link.click();
-	};
+			if (format === 'PNG') {
+				await downloadCanvasAsPng(canvas, 'qr-code');
+				return;
+			}
 
-	const downloadPdf = async () => {
-		if (!enforceGuestLimit(value)) {
-			return;
+			const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+			const x = (pdf.internal.pageSize.getWidth() - PDF_QR_SIZE) / 2;
+			const y = (pdf.internal.pageSize.getHeight() - PDF_QR_SIZE) / 2;
+			pdf.addImage(canvas, 'PNG', x, y, PDF_QR_SIZE, PDF_QR_SIZE);
+			downloadBlob(pdf.output('blob'), 'qr-code.pdf');
+		} catch (error) {
+			console.error('Error exporting QR', error);
+			setSaveMessage(`Could not prepare the ${format} download. Please try again.`);
+			setToastVariant('error');
+			setShowAuthActions(false);
+			setShowToast(true);
 		}
-
-		const canvas = await makeCanvasFromSvg('qr-svg');
-		if (!canvas) return;
-		const pdf = new jsPDF({
-			orientation: 'portrait',
-			unit: 'pt',
-			format: 'a4',
-		});
-
-		const pageWidth = pdf.internal.pageSize.getWidth();
-		const pageHeight = pdf.internal.pageSize.getHeight();
-		const x = (pageWidth - PDF_QR_SIZE) / 2;
-		const y = (pageHeight - PDF_QR_SIZE) / 2;
-
-		const pngData = canvas.toDataURL('image/png');
-		pdf.addImage(pngData, 'PNG', x, y, PDF_QR_SIZE, PDF_QR_SIZE);
-		pdf.save('qr-code.pdf');
 	};
 
 	const saveQr = async () => {
@@ -259,10 +220,18 @@ export function QrGeneratorCard() {
 					{qrValue ? <QrPreview data={qrValue} /> : <QrPlaceholder />}
 
 					<div className='flex flex-wrap gap-2 justify-center'>
-						<button className='btn btn-primary btn-sm' onClick={downloadPng}>
+						<button
+							type='button'
+							className='btn btn-primary btn-sm'
+							disabled={!qrValue}
+							onClick={() => void downloadQr('PNG')}>
 							Download PNG
 						</button>
-						<button className='btn btn-secondary btn-sm' onClick={downloadPdf}>
+						<button
+							type='button'
+							className='btn btn-secondary btn-sm'
+							disabled={!qrValue}
+							onClick={() => void downloadQr('PDF')}>
 							Download PDF
 						</button>
 						<button
