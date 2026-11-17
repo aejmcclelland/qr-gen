@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 import {
 	expect,
 	expectSignedIn,
@@ -38,6 +39,73 @@ test.describe('create QR', () => {
 		const card = page.getByTestId('qr-card').filter({ hasText: label });
 		await expect(card).toContainText(label);
 		await expect(card).toContainText(targetUrl);
+	});
+
+	test('saved QR downloads produce PNG and JPG files', async ({ authedPage }) => {
+		const page = authedPage;
+		const label = 'QR Download';
+		await openCreateQrPage(page);
+		await page.getByLabel('Target URL').fill('https://example.com/download');
+		await page.getByLabel('Label (optional)').fill(label);
+		await page.getByRole('button', { name: 'Save to account' }).click();
+		await expectToast(page, 'Saved');
+		await page.goto('/qr');
+
+		const card = page.getByTestId('qr-card').filter({ hasText: label });
+		await expect(card.locator('svg[viewBox]').first()).toBeVisible();
+
+		for (const { format, signature } of [
+			{
+				format: 'PNG',
+				signature: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+			},
+			{ format: 'JPG', signature: [0xff, 0xd8, 0xff] },
+		]) {
+			await card.getByRole('button', { name: 'More actions' }).click();
+			const [download] = await Promise.all([
+				page.waitForEvent('download'),
+				page.getByRole('menuitem', { name: `Download ${format}` }).click(),
+			]);
+
+			expect(download.url()).toMatch(/^blob:/);
+			expect(download.suggestedFilename()).toBe(`qr-download.${format.toLowerCase()}`);
+			const bytes = await readFile(await download.path());
+			expect(bytes.subarray(0, signature.length)).toEqual(Buffer.from(signature));
+		}
+
+		await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+		await page.evaluate(() => {
+			Object.defineProperty(navigator, 'canShare', {
+				configurable: true,
+				value: (data: ShareData) => data.files?.[0]?.type === 'image/png',
+			});
+			Object.defineProperty(navigator, 'share', {
+				configurable: true,
+				value: async (data: ShareData) => {
+					const file = data.files?.[0];
+					document.documentElement.dataset.sharedFile = file?.name;
+					document.documentElement.dataset.sharedType = file?.type;
+					document.documentElement.dataset.shareActivation = String(navigator.userActivation.isActive);
+				},
+			});
+		});
+		await card.getByRole('button', { name: 'More actions' }).click();
+		await page.getByRole('menuitem', { name: 'Preview & share' }).click();
+		const preview = page.getByRole('dialog', { name: label });
+		await expect(preview.getByRole('img', { name: 'QR code preview' })).toBeVisible();
+		await preview.getByRole('button', { name: 'Copy image' }).click();
+		await expect(preview.getByRole('status')).toContainText('Image copied');
+		expect(await page.evaluate(async () => {
+			const items = await navigator.clipboard.read();
+			const blob = await items[0].getType('image/png');
+			return Array.from(new Uint8Array(await blob.arrayBuffer()).subarray(0, 8));
+		})).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+		await preview.getByRole('button', { name: 'Share image' }).click();
+		await expect(page.locator('html')).toHaveAttribute('data-shared-file', 'qr-download.png');
+		await expect(page.locator('html')).toHaveAttribute('data-shared-type', 'image/png');
+		await expect(page.locator('html')).toHaveAttribute('data-share-activation', 'true');
+		await page.keyboard.press('Escape');
+		await expect(preview).toHaveCount(0);
 	});
 
 	test('invalid QR submission is blocked', async ({ authedPage }) => {

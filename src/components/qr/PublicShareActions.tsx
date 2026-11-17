@@ -79,9 +79,9 @@ export default function PublicShareActions({
 				size: 1024,
 				background: '#FFFFFF',
 			});
-			downloadCanvasAsPng(canvas, filenameBase);
+			await downloadCanvasAsPng(canvas, filenameBase);
 
-			setToast({ show: true, message: 'PNG downloaded!', variant: 'success' });
+			setToast({ show: true, message: 'PNG ready to download.', variant: 'success' });
 		} catch {
 			setToast({
 				show: true,

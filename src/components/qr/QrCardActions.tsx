@@ -14,6 +14,7 @@ type QrCardActionsProps = {
 	onDelete: () => void;
 	onDownloadPng: () => void;
 	onDownloadJpg: () => void;
+	onPreview: () => void;
 	onPrint: () => void;
 	createdAt?: string;
 	showPrint?: boolean;
@@ -25,6 +26,7 @@ export function QrCardActions({
 	onDelete,
 	onDownloadPng,
 	onDownloadJpg,
+	onPreview,
 	onPrint,
 	createdAt,
 	showPrint = true,
@@ -44,8 +46,11 @@ export function QrCardActions({
 				align='end'
 				className='w-44 rounded-md bg-neutral text-neutral-content shadow-lg p-2'>
 				<div className='px-2 pb-1 text-[11px] font-semibold text-primary'>
-					Download
+					QR image
 				</div>
+				<DropdownMenuItem onClick={onPreview}>
+					Preview &amp; share
+				</DropdownMenuItem>
 				<DropdownMenuItem onClick={onDownloadPng}>
 					Download PNG
 				</DropdownMenuItem>
