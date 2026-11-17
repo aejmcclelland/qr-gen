@@ -1,7 +1,6 @@
 import type { Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import {
-	createQr,
 	expect,
 	expectSignedIn,
 	expectToast,
@@ -45,14 +44,21 @@ test.describe('create QR', () => {
 	test('saved QR downloads produce PNG and JPG files', async ({ authedPage }) => {
 		const page = authedPage;
 		const label = 'QR Download';
-		await createQr(page, { label, targetUrl: 'https://example.com/download' });
+		await openCreateQrPage(page);
+		await page.getByLabel('Target URL').fill('https://example.com/download');
+		await page.getByLabel('Label (optional)').fill(label);
+		await page.getByRole('button', { name: 'Save to account' }).click();
+		await expectToast(page, 'Saved');
 		await page.goto('/qr');
 
 		const card = page.getByTestId('qr-card').filter({ hasText: label });
 		await expect(card.locator('svg[viewBox]').first()).toBeVisible();
 
 		for (const { format, signature } of [
-			{ format: 'PNG', signature: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+			{
+				format: 'PNG',
+				signature: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+			},
 			{ format: 'JPG', signature: [0xff, 0xd8, 0xff] },
 		]) {
 			await card.getByRole('button', { name: 'More actions' }).click();
